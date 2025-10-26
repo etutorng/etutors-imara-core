@@ -1,6 +1,6 @@
-# Next.js 15 Starter Template
+# Next.js 16 Starter Template
 
-A powerful starter template for Next.js 15 projects, featuring:
+A powerful starter template for Next.js 16 projects, featuring:
 
 - **Better Auth**: Seamless and secure authentication.
 - **Drizzle ORM**: Elegant and type-safe database management.
