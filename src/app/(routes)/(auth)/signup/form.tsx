@@ -33,6 +33,7 @@ export default function SignUpForm() {
       username: "",
       password: "",
       confirmPassword: "",
+      gender: false
     },
   });
 
@@ -169,7 +170,7 @@ export default function SignUpForm() {
             <FormItem>
               <FormLabel>Gender</FormLabel>
               <GenderRadioGroup
-                value={field.value ?? ""}
+                value={field.value}
                 onChange={field.onChange}
               />
               <FormMessage />

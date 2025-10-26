@@ -1,3 +1,4 @@
+import { passwordSchema } from "@/lib/auth/password";
 import { z } from "zod";
 
 const disallowedUsernamePatterns = [
@@ -13,9 +14,8 @@ const disallowedUsernamePatterns = [
 export const SignUpSchema = z
   .object({
     email: z
-      .string()
-      .min(1, { message: "Email is required" })
-      .email({ message: "Invalid email address" }),
+    .email({ message: "Invalid email address" })
+    .min(1, { message: "Email is required" }),
     name: z.string().min(4, { message: "Must be at least 4 characters" }),
     username: z
       .string()
@@ -32,15 +32,11 @@ export const SignUpSchema = z
         },
         { message: "Username contains disallowed words" },
       ),
-    password: z.string().min(8, {
-      message: "Must be at least 8 characters",
-    }),
+    password: passwordSchema,
     confirmPassword: z.string().min(8, {
       message: "Must be at least 8 characters",
     }),
-    gender: z.enum(["male", "female"], {
-      message: "Gender must be either 'male' or 'female'.",
-    }),
+    gender: z.boolean().nonoptional(),
   })
   .refine((data) => data.password === data.confirmPassword, {
     message: "Passwords don't match",

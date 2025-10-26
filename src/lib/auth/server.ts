@@ -13,8 +13,14 @@ export const auth = betterAuth({
   },
   user: {
     additionalFields: {
-      gender: {
+      role: {
         type: "string",
+        defaultValue: "user",
+        required: false,
+        input: false,
+      },
+      gender: {
+        type: "boolean",
         required: true,
         input: true,
       },

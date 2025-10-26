@@ -1,5 +1,4 @@
 import { boolean, pgTable, text, timestamp } from "drizzle-orm/pg-core";
-import { role, genderEnum } from "..";
 
 export const user = pgTable("user", {
   id: text("id").primaryKey(),
@@ -9,12 +8,12 @@ export const user = pgTable("user", {
   email: text("email").notNull().unique(),
   emailVerified: boolean("emailVerified").notNull(),
   image: text("image"),
-  role: role("role").default("member").notNull(),
-  gender: genderEnum("gender"),
+  role: text("role").default("member").notNull(),
+  gender: boolean("gender").notNull(),
   createdAt: timestamp("createdAt").defaultNow(),
   updatedAt: timestamp("updatedAt")
     .defaultNow()
     .$onUpdate(() => new Date()),
-});
+}).enableRLS();
 
 export type UserType = typeof user.$inferSelect;
