@@ -41,7 +41,7 @@ export default function SignInForm() {
         console.log("SIGN_IN:", response.error.message);
         toast.error(response.error.message);
       } else {
-        router.push("/");
+        router.push("/dashboard");
       }
     });
   }
@@ -49,7 +49,7 @@ export default function SignInForm() {
   const getInputClassName = (fieldName: keyof SignInValues) =>
     cn(
       form.formState.errors[fieldName] &&
-        "border-destructive/80 text-destructive focus-visible:border-destructive/80 focus-visible:ring-destructive/20",
+      "border-destructive/80 text-destructive focus-visible:border-destructive/80 focus-visible:ring-destructive/20",
     );
 
   return (

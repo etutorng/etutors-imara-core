@@ -1,122 +1,261 @@
-import { buttonVariants } from "@/components/ui/button";
-import { cn } from "@/lib/utils";
-import Image from "next/image";
-import Link from "next/link";
-import SignOutButton from "../(auth)/components/button-signout";
-import { getServerSession } from "@/lib/auth/get-session";
+"use client";
 
-export default async function Home() {
-  const me = await getServerSession();
+import Link from "next/link";
+import { Button } from "@/components/ui/button";
+import { GradientCard } from "@/components/ui/gradient-card";
+import {
+  Scale,
+  GraduationCap,
+  Users,
+  BookOpen,
+  ArrowRight,
+  Github,
+  Heart,
+  Shield,
+  Globe
+} from "lucide-react";
+import { useLanguage } from "@/lib/i18n/language-context";
+
+export default function HomePage() {
+  const { t } = useLanguage();
+
+  const features = [
+    {
+      icon: Scale,
+      title: t("home.feature.legal.title"),
+      description: t("home.feature.legal.description"),
+      variant: "primary" as const,
+    },
+    {
+      icon: GraduationCap,
+      title: t("home.feature.lms.title"),
+      description: t("home.feature.lms.description"),
+      variant: "accent" as const,
+    },
+    {
+      icon: Users,
+      title: t("home.feature.mentorship.title"),
+      description: t("home.feature.mentorship.description"),
+      variant: "primary" as const,
+    },
+    {
+      icon: BookOpen,
+      title: t("home.feature.resources.title"),
+      description: t("home.feature.resources.description"),
+      variant: "accent" as const,
+    },
+  ];
+
+  const stats = [
+    { value: "5,000+", label: t("home.stats.womenEmpowered") },
+    { value: "100+", label: t("home.stats.casesResolved") },
+    { value: "500+", label: t("home.stats.skillsLearned") },
+    { value: "5", label: t("home.stats.languagesSupported") },
+  ];
 
   return (
-    <div className="grid min-h-screen grid-rows-[20px_1fr_20px] items-center justify-items-center gap-16 p-8 pb-20 font-[family-name:var(--font-geist-sans)] sm:p-20">
-      <main className="row-start-2 flex flex-col items-center gap-8 sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="list-inside list-decimal text-center font-[family-name:var(--font-geist-mono)] text-sm sm:text-left">
-          <li className="mb-2">
-            Get started by editing{" "}
-            <code className="rounded bg-black/[.05] px-1 py-0.5 font-semibold dark:bg-white/[.06]">
-              src/app/page.tsx
-            </code>
-            .
-          </li>
-          <li>Save and see your changes instantly.</li>
-        </ol>
+    <div className="flex flex-col">
+      {/* Hero Section */}
+      <section className="relative overflow-hidden bg-gradient-to-br from-primary/5 via-background to-accent/5 py-20 md:py-32">
+        <div className="container px-4 mx-auto">
+          <div className="max-w-4xl mx-auto text-center space-y-8">
+            <div className="inline-flex items-center gap-2 rounded-full bg-primary/10 px-4 py-2 text-sm font-medium text-primary">
+              <Heart className="h-4 w-4" />
+              {t("home.hero.badge")}
+            </div>
 
-        <div className="flex flex-col items-center gap-4 sm:flex-row">
-          <a
-            className="flex h-10 items-center justify-center gap-2 rounded-full border border-solid border-transparent bg-foreground px-4 text-sm text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] sm:h-12 sm:px-5 sm:text-base"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="flex h-10 items-center justify-center rounded-full border border-solid border-black/[.08] px-4 text-sm transition-colors hover:border-transparent hover:bg-[#f2f2f2] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] sm:h-12 sm:min-w-44 sm:px-5 sm:text-base"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
-        </div>
-        {me ? (
-          <div className="flex w-full flex-col gap-5">
-            <h2>Hi, {me.user.name}</h2>
-            <p>{me.user.email}</p>
-            <SignOutButton />
+            <h1 className="text-4xl md:text-6xl font-bold tracking-tight">
+              {t("home.hero.title.your")}{" "}
+              <span className="bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
+                {t("home.hero.title.digital")}
+              </span>{" "}
+              {t("home.hero.title.system")}
+            </h1>
+
+            <p className="text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto">
+              {t("home.hero.description")}
+            </p>
+
+            <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
+              <Button size="lg" asChild className="w-full sm:w-auto">
+                <Link href="/signup">
+                  {t("home.hero.getStarted")}
+                  <ArrowRight className="ml-2 h-4 w-4" />
+                </Link>
+              </Button>
+              <Button size="lg" variant="outline" asChild className="w-full sm:w-auto">
+                <Link href="/about">
+                  {t("home.hero.learnMore")}
+                </Link>
+              </Button>
+            </div>
+
+            {/* Stats */}
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-8 pt-12">
+              {stats.map((stat) => (
+                <div key={stat.label} className="text-center">
+                  <div className="text-3xl md:text-4xl font-bold text-primary">
+                    {stat.value}
+                  </div>
+                  <div className="text-sm text-muted-foreground mt-1">
+                    {stat.label}
+                  </div>
+                </div>
+              ))}
+            </div>
           </div>
-        ) : (
-          <Link
-            href={"/signin"}
-            className={cn(buttonVariants({ variant: "default" }))}
-          >
-            Sign In
-          </Link>
-        )}
-      </main>
-      <footer className="row-start-3 flex flex-wrap items-center justify-center gap-6">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
+        </div>
+      </section>
+
+      {/* Features Section */}
+      <section className="py-20 md:py-32">
+        <div className="container px-4 mx-auto">
+          <div className="text-center max-w-3xl mx-auto mb-16">
+            <h2 className="text-3xl md:text-4xl font-bold mb-4">
+              {t("home.features.title")}
+            </h2>
+            <p className="text-lg text-muted-foreground">
+              {t("home.features.description")}
+            </p>
+          </div>
+
+          <div className="grid md:grid-cols-2 gap-6 max-w-5xl mx-auto">
+            {features.map((feature) => {
+              const Icon = feature.icon;
+              return (
+                <GradientCard key={feature.title} variant={feature.variant} className="p-8">
+                  <div className="flex items-start gap-4">
+                    <div className={`rounded-lg p-3 ${feature.variant === "primary"
+                      ? "bg-primary/10 text-primary"
+                      : "bg-accent/10 text-accent"
+                      }`}>
+                      <Icon className="h-6 w-6" />
+                    </div>
+                    <div className="flex-1">
+                      <h3 className="text-xl font-semibold mb-2">{feature.title}</h3>
+                      <p className="text-muted-foreground">{feature.description}</p>
+                    </div>
+                  </div>
+                </GradientCard>
+              );
+            })}
+          </div>
+        </div>
+      </section>
+
+      {/* Multilingual Section */}
+      <section className="py-20 md:py-32 bg-muted/30">
+        <div className="container px-4 mx-auto">
+          <div className="max-w-4xl mx-auto text-center space-y-8">
+            <div className="inline-flex items-center gap-2 rounded-full bg-primary/10 px-4 py-2 text-sm font-medium text-primary">
+              <Globe className="h-4 w-4" />
+              {t("home.multilingual.badge")}
+            </div>
+
+            <h2 className="text-3xl md:text-4xl font-bold">
+              {t("home.multilingual.title")}
+            </h2>
+
+            <p className="text-lg text-muted-foreground">
+              {t("home.multilingual.description")}
+            </p>
+
+            <div className="flex flex-wrap justify-center gap-4 pt-8">
+              {["English", "Hausa", "Igbo", "Yoruba", "Pidgin"].map((lang) => (
+                <div
+                  key={lang}
+                  className="px-6 py-3 rounded-full bg-background border border-primary/20 text-sm font-medium"
+                >
+                  {lang}
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Open Source Section */}
+      <section className="py-20 md:py-32">
+        <div className="container px-4 mx-auto">
+          <div className="max-w-4xl mx-auto">
+            <GradientCard variant="primary" className="p-8 md:p-12">
+              <div className="flex flex-col md:flex-row items-center gap-8">
+                <div className="flex-1 space-y-4">
+                  <div className="inline-flex items-center gap-2 rounded-full bg-background px-4 py-2 text-sm font-medium">
+                    <Github className="h-4 w-4" />
+                    {t("home.opensource.badge")}
+                  </div>
+
+                  <h2 className="text-3xl md:text-4xl font-bold">
+                    {t("home.opensource.title")}
+                  </h2>
+
+                  <p className="text-muted-foreground">
+                    {t("home.opensource.description")}
+                  </p>
+
+                  <div className="flex flex-col sm:flex-row gap-4 pt-4">
+                    <Button variant="secondary" asChild>
+                      <Link href="/open-source">
+                        {t("home.opensource.viewRoadmap")}
+                        <ArrowRight className="ml-2 h-4 w-4" />
+                      </Link>
+                    </Button>
+                    <Button variant="outline" asChild>
+                      <a href="https://github.com" target="_blank" rel="noopener noreferrer">
+                        <Github className="mr-2 h-4 w-4" />
+                        {t("home.opensource.github")}
+                      </a>
+                    </Button>
+                  </div>
+                </div>
+
+                <div className="flex-shrink-0">
+                  <div className="w-32 h-32 rounded-full bg-gradient-to-br from-primary to-accent p-1">
+                    <div className="w-full h-full rounded-full bg-background flex items-center justify-center">
+                      <Shield className="h-16 w-16 text-primary" />
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </GradientCard>
+          </div>
+        </div>
+      </section>
+
+      {/* CTA Section */}
+      <section className="py-20 md:py-32 bg-gradient-to-br from-primary/10 to-accent/10">
+        <div className="container px-4 mx-auto">
+          <div className="max-w-3xl mx-auto text-center space-y-8">
+            <h2 className="text-3xl md:text-4xl font-bold">
+              {t("home.cta.title")}
+            </h2>
+
+            <p className="text-lg text-muted-foreground">
+              {t("home.cta.description")}
+            </p>
+
+            <Button size="lg" asChild>
+              <Link href="/signup">
+                {t("home.cta.createAccount")}
+                <ArrowRight className="ml-2 h-4 w-4" />
+              </Link>
+            </Button>
+
+            <p className="text-sm text-muted-foreground">
+              {t("home.cta.poweredBy")}{" "}
+              <a
+                href="https://etutors.com.ng"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-primary hover:underline"
+              >
+                eTutors Nigeria Ltd
+              </a>
+            </p>
+          </div>
+        </div>
+      </section>
     </div>
   );
 }

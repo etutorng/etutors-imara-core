@@ -1,5 +1,5 @@
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { Label } from "@/components/ui/label";
+import * as React from "react";
+import * as RadioGroupPrimitive from "@radix-ui/react-radio-group";
 import { cn } from "@/lib/utils";
 
 const options = [
@@ -7,17 +7,16 @@ const options = [
   { id: "female", label: "Female", value: true },
 ];
 
-export function GenderRadioGroup({
-  value,
-  onChange,
-}: {
+interface GenderRadioGroupProps {
   value: boolean;
   onChange: (val: boolean) => void;
-}) {
+}
+
+export function GenderRadioGroup({ value, onChange }: GenderRadioGroupProps) {
   return (
-    <RadioGroup
+    <RadioGroupPrimitive.Root
       value={String(value)}
-      onValueChange={(val) => onChange(val === "true")}
+      onValueChange={(val: string) => onChange(val === "true")}
       className="grid grid-cols-3 gap-4"
     >
       {options.map((opt) => (
@@ -27,22 +26,22 @@ export function GenderRadioGroup({
             "mt-2 flex items-center space-x-2 rounded-lg px-4 py-2 ring transition-all duration-300",
             value === opt.value
               ? "ring-primary/10 bg-muted text-foreground"
-              : "ring-muted hover:bg-muted text-muted-foreground",
+              : "ring-muted hover:bg-muted text-muted-foreground"
           )}
         >
-          <RadioGroupItem
+          <RadioGroupPrimitive.Item
             id={opt.id}
             value={String(opt.value)}
             className="peer sr-only"
           />
-          <Label
+          <label
             htmlFor={opt.id}
             className="mx-auto flex w-full cursor-pointer items-center justify-center text-sm font-medium transition-all duration-300"
           >
             {opt.label}
-          </Label>
+          </label>
         </div>
       ))}
-    </RadioGroup>
+    </RadioGroupPrimitive.Root>
   );
 }

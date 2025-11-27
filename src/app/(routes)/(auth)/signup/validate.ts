@@ -5,29 +5,35 @@ import { z } from "zod";
 export const SignUpSchema = z
   .object({
     email: z
-    .email({ message: "Invalid email address" })
-    .min(1, { message: "Email is required" }),
+      .email({ message: "Invalid email address" })
+      .min(1, { message: "Email is required" }),
     name: z.string().min(4, { message: "Must be at least 4 characters" }),
     username: z
-    .string()
-    .min(4, { message: "Must be at least 4 characters" })
-    .regex(/^[a-zA-Z0-9]+$/, "Only letters and numbers allowed")
-    .refine(
-      (username) => {
-        for (const pattern of restrictedUsernames) {
-          if (username.toLowerCase().includes(pattern)) {
-            return false;
+      .string()
+      .min(4, { message: "Must be at least 4 characters" })
+      .regex(/^[a-zA-Z0-9]+$/, "Only letters and numbers allowed")
+      .refine(
+        (username) => {
+          for (const pattern of restrictedUsernames) {
+            if (username.toLowerCase().includes(pattern)) {
+              return false;
+            }
           }
-        }
-        return true;
-      },
-      { message: "Username contains disallowed words" }
-    ),
+          return true;
+        },
+        { message: "Username contains disallowed words" }
+      ),
     password: passwordSchema,
     confirmPassword: z.string().min(8, {
       message: "Must be at least 8 characters",
     }),
-    gender: z.boolean().nonoptional(),
+    gender: z.boolean().refine((val) => val === true, {
+      message: "This platform is exclusively for young women and girls",
+    }),
+    language: z.enum(["en", "ha", "ig", "yo", "pcm"]).default("en"),
+    acceptTerms: z.boolean().refine((val) => val === true, {
+      message: "You must accept the privacy policy to continue",
+    }),
   })
   .refine((data) => data.password === data.confirmPassword, {
     message: "Passwords don't match",

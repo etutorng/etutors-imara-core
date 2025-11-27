@@ -8,7 +8,7 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import { useTransition } from "react";
+import { useTransition, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { signUp } from "@/lib/auth/client";
@@ -20,11 +20,16 @@ import { SignUpSchema, SignUpValues } from "./validate";
 import InputStartIcon from "../components/input-start-icon";
 import InputPasswordContainer from "../components/input-password";
 import { cn } from "@/lib/utils";
-import { AtSign, MailIcon, UserIcon } from "lucide-react";
+import { AtSign, MailIcon, UserIcon, AlertCircle } from "lucide-react";
 import { GenderRadioGroup } from "../components/gender-radio-group";
+import { Checkbox } from "@/components/ui/checkbox";
+import Link from "next/link";
+import { languages } from "@/lib/i18n/translations";
 
 export default function SignUpForm() {
   const [isPending, startTransition] = useTransition();
+  const [showMaleError, setShowMaleError] = useState(false);
+
   const form = useForm<SignUpValues>({
     resolver: zodResolver(SignUpSchema),
     defaultValues: {
@@ -33,20 +38,32 @@ export default function SignUpForm() {
       username: "",
       password: "",
       confirmPassword: "",
-      gender: false
+      gender: false,
+      language: "en",
+      acceptTerms: false,
     },
   });
 
   function onSubmit(data: SignUpValues) {
+    // Check if male was selected
+    if (data.gender === false) {
+      setShowMaleError(true);
+      return;
+    }
+
     startTransition(async () => {
       console.log("submit data:", data);
+
+      // Save language preference to localStorage
+      localStorage.setItem("language", data.language);
+
       const response = await signUp.email(data);
 
       if (response.error) {
         console.log("SIGN_UP:", response.error.status);
         toast.error(response.error.message);
       } else {
-        redirect("/");
+        redirect("/dashboard");
       }
     });
   }
@@ -54,8 +71,41 @@ export default function SignUpForm() {
   const getInputClassName = (fieldName: keyof SignUpValues) =>
     cn(
       form.formState.errors[fieldName] &&
-        "border-destructive/80 text-destructive focus-visible:border-destructive/80 focus-visible:ring-destructive/20",
+      "border-destructive/80 text-destructive focus-visible:border-destructive/80 focus-visible:ring-destructive/20",
     );
+
+  if (showMaleError) {
+    return (
+      <div className="z-50 my-8 flex w-full flex-col items-center gap-6 text-center">
+        <div className="rounded-full bg-destructive/10 p-4">
+          <AlertCircle className="h-12 w-12 text-destructive" />
+        </div>
+        <div className="space-y-2">
+          <h2 className="text-2xl font-bold">Platform for Women Only</h2>
+          <p className="text-muted-foreground max-w-md">
+            Sorry, Project Imara is exclusively for young women and girls.
+            This platform is designed to provide a safe space for female empowerment.
+          </p>
+        </div>
+        <div className="flex flex-col gap-2 w-full">
+          <Button
+            variant="outline"
+            onClick={() => setShowMaleError(false)}
+            className="w-full"
+          >
+            Go Back
+          </Button>
+          <Button
+            variant="ghost"
+            asChild
+            className="w-full"
+          >
+            <Link href="/">Return to Homepage</Link>
+          </Button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <Form {...form}>
@@ -82,6 +132,7 @@ export default function SignUpForm() {
             </FormItem>
           )}
         />
+
         <FormField
           control={form.control}
           name="email"
@@ -162,6 +213,31 @@ export default function SignUpForm() {
           )}
         />
 
+        {/* Language Selection */}
+        <FormField
+          control={form.control}
+          name="language"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Preferred Language</FormLabel>
+              <FormControl>
+                <select
+                  {...field}
+                  disabled={isPending}
+                  className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-xs transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                  {Object.entries(languages).map(([code, lang]) => (
+                    <option key={code} value={code}>
+                      {lang.nativeName}
+                    </option>
+                  ))}
+                </select>
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
         {/* Gender */}
         <FormField
           control={form.control}
@@ -174,6 +250,36 @@ export default function SignUpForm() {
                 onChange={field.onChange}
               />
               <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        {/* Privacy Policy Acceptance */}
+        <FormField
+          control={form.control}
+          name="acceptTerms"
+          render={({ field }) => (
+            <FormItem className="flex flex-row items-start space-x-3 space-y-0">
+              <FormControl>
+                <Checkbox
+                  checked={field.value}
+                  onCheckedChange={field.onChange}
+                  disabled={isPending}
+                />
+              </FormControl>
+              <div className="space-y-1 leading-none">
+                <FormLabel className="text-sm font-normal">
+                  I confirm that I am female and accept the{" "}
+                  <Link
+                    href="/privacy"
+                    className="text-primary hover:underline"
+                    target="_blank"
+                  >
+                    Privacy Policy
+                  </Link>
+                </FormLabel>
+                <FormMessage />
+              </div>
             </FormItem>
           )}
         />

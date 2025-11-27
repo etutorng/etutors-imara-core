@@ -1,12 +1,13 @@
-import { Toaster } from "@/components/ui/sonner";
-import NextTopLoader from "nextjs-toploader";
+"use client";
+
+import { Toaster } from "sonner";
+import { LanguageProvider } from "@/lib/i18n/language-context";
 
 export default function Providers({ children }: { children: React.ReactNode }) {
   return (
-    <>
-      <NextTopLoader easing="ease" showSpinner={false} color="var(--primary)" />
+    <LanguageProvider>
       {children}
       <Toaster position="top-center" />
-    </>
+    </LanguageProvider>
   );
 }
