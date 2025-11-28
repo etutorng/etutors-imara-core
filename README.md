@@ -1,75 +1,53 @@
-# Next.js 16 Starter Template
+# Project Imara 🌿
 
-A powerful starter template for Next.js 16 projects, featuring:
+> "Digital Life Support for the Girl Child."
 
-- **Better Auth**: Seamless and secure authentication.
-- **Drizzle ORM**: Elegant and type-safe database management.
-- **Supabase**: Robust backend services for your application.
+**Project Imara** (derived from the root for Strength and Firmness) is an Open Source humanitarian platform designed to provide underserved young women in rural Nigeria with a holistic empowerment ecosystem.
 
-## Features
+Unlike traditional EdTech platforms, Imara removes all barriers to entry (no email required, offline-first) to deliver tangible life-saving and life-changing services directly to the most vulnerable.
 
-- Pre-configured authentication with Better Auth.
-- Integrated Drizzle ORM for easy database interactions.
-- Ready-to-use Supabase setup.
-- Scalable and modern tech stack.
+## 🚀 The Core Pillars
 
-## Getting Started
+Project Imara is built on four non-negotiable pillars of empowerment:
 
-Follow these steps to set up the project:
+- **⚖️ Legal Protection:** Anonymous reporting tools connecting victims of abuse to pro-bono legal partners.
+- **🛠️ Economic Independence:** Video-based vocational training (Fashion, Tech, Agriculture) optimized for low-bandwidth networks.
+- **🤝 Mentorship:** A safe, verified "Councillor" system connecting girls to female role models.
+- **🏥 Health & Wellness:** Culturally sensitive health education in local languages.
 
-### 1\. Clone the Repository
+## 🌍 Accessibility First (The "Rural Amina" Standard)
 
-```
-git clone https://github.com/JabirDev/nextjs-better-auth.git
-cd nextjs-better-auth
-```
+We architected this platform for "Rural Amina"—a 16-year-old girl in a village with a shared Android phone and poor internet.
 
-### 2\. Install Dependencies
+- **Zero Friction Auth:** Sign up with Phone Number Only. No email required.
+- **Self-Attestation:** No ID uploads required. We trust women to be women.
+- **Offline-First:** Built as a PWA. Videos and content can be downloaded once and viewed offline forever.
+- **Multilingual Engine:** Full UI and Content support for English, Hausa, Igbo, Yoruba, and Pidgin.
 
-Make sure you have Node.js installed, then run:
+## 🛠️ Tech Stack
 
-```
-bun install
-```
+- **Framework:** Next.js 14 (App Router)
+- **Database:** PostgreSQL (via Drizzle ORM)
+- **Authentication:** Better-Auth (Phone-based)
+- **State/Cache:** TanStack Query (Offline persistence)
+- **Styling:** Tailwind CSS
+- **Deployment:** Vercel / Docker (Self-Hostable)
 
-### 3\. Configure Environment Variables
+## 🤝 Contributing
 
-Copy the env.example file to create your .env file:
+We welcome contributions from developers, translators, and policy experts. Please read our `CONTRIBUTING.md` (Coming Soon) to get started.
 
-```
-cp env.example .env
-```
+### Core Roadmap
 
-Edit the `.env` file with your project's specific configurations:
+- [x] **Phase 1:** Core Architecture & "Low Barrier" Auth
+- [x] **Phase 2:** Vocational LMS (Offline Video)
+- [x] **Phase 3:** Mentorship Chat System
+- [ ] **Phase 4:** RBAC & Legal Ticket System (In Progress)
 
-- Add your Supabase keys and URLs.
-- Configure any required authentication secrets.
+## 📄 License
 
-### 4\. Setup Drizzle ORM
+This project is licensed under the MIT License - see the LICENSE file for details.
 
-Generate your Drizzle schema and push into your database:
+---
 
-```
-bun db:push
-```
-
-### 5\. Start the Development Server
-
-Run the development server:
-
-```
-bun dev
-```
-
-Your application will be available at [http://localhost:3000](http://localhost:3000).
-
-## Contributing
-
-Contributions are welcome! Feel free to:
-
-- Open issues for bugs or feature requests.
-- Submit pull requests to improve the project.
-
-### License
-
-This project is licensed under the MIT License.
+*Powered by eTutors Nigeria Ltd.*
