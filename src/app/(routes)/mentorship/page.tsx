@@ -114,7 +114,7 @@ export default function MentorshipPage() {
                                         {t("mentorship.requestMentorship")}
                                     </Button>
                                 </DialogTrigger>
-                                <DialogContent className="sm:max-w-md p-0 border-none bg-transparent shadow-none">
+                                <DialogContent className="w-screen h-[100dvh] max-w-none m-0 p-0 border-none bg-transparent shadow-none sm:h-auto sm:w-full sm:max-w-md sm:rounded-lg">
                                     {selectedMentor && (
                                         <ChatShell
                                             mentorName={selectedMentor.name}

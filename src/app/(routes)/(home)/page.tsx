@@ -25,24 +25,28 @@ export default function HomePage() {
       title: t("home.feature.legal.title"),
       description: t("home.feature.legal.description"),
       variant: "primary" as const,
+      href: "/legal",
     },
     {
       icon: GraduationCap,
       title: t("home.feature.lms.title"),
       description: t("home.feature.lms.description"),
       variant: "accent" as const,
+      href: "/lms",
     },
     {
       icon: Users,
       title: t("home.feature.mentorship.title"),
       description: t("home.feature.mentorship.description"),
       variant: "primary" as const,
+      href: "/mentorship",
     },
     {
       icon: BookOpen,
       title: t("home.feature.resources.title"),
       description: t("home.feature.resources.description"),
       variant: "accent" as const,
+      href: "/resources",
     },
   ];
 
@@ -123,20 +127,22 @@ export default function HomePage() {
             {features.map((feature) => {
               const Icon = feature.icon;
               return (
-                <GradientCard key={feature.title} variant={feature.variant} className="p-8">
-                  <div className="flex items-start gap-4">
-                    <div className={`rounded-lg p-3 ${feature.variant === "primary"
-                      ? "bg-primary/10 text-primary"
-                      : "bg-accent/10 text-accent"
-                      }`}>
-                      <Icon className="h-6 w-6" />
+                <Link key={feature.title} href={feature.href} className="block group">
+                  <GradientCard variant={feature.variant} className="p-8 h-full transition-transform duration-300 group-hover:scale-[1.02] cursor-pointer">
+                    <div className="flex items-start gap-4">
+                      <div className={`rounded-lg p-3 ${feature.variant === "primary"
+                        ? "bg-primary/10 text-primary"
+                        : "bg-accent/10 text-accent"
+                        }`}>
+                        <Icon className="h-6 w-6" />
+                      </div>
+                      <div className="flex-1">
+                        <h3 className="text-xl font-semibold mb-2">{feature.title}</h3>
+                        <p className="text-muted-foreground">{feature.description}</p>
+                      </div>
                     </div>
-                    <div className="flex-1">
-                      <h3 className="text-xl font-semibold mb-2">{feature.title}</h3>
-                      <p className="text-muted-foreground">{feature.description}</p>
-                    </div>
-                  </div>
-                </GradientCard>
+                  </GradientCard>
+                </Link>
               );
             })}
           </div>

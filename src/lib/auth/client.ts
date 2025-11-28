@@ -4,7 +4,7 @@ import { nextCookies } from "better-auth/next-js";
 
 export const { signIn, signUp, signOut, useSession, getSession } =
   createAuthClient({
-    baseURL: process.env.NEXT_PUBLIC_BASE_URL!,
+    baseURL: process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000",
     emailAndPassword: {
       enabled: true,
     },

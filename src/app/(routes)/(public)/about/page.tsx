@@ -1,5 +1,7 @@
 import { GradientCard } from "@/components/ui/gradient-card";
-import { Shield, Heart, Globe, Users } from "lucide-react";
+import { Shield, Heart, Globe, Users, Github, BookOpen } from "lucide-react";
+import Link from "next/link";
+import { Button } from "@/components/ui/button";
 
 const values = [
     {
@@ -149,6 +151,21 @@ export default function AboutPage() {
                         This project is being submitted to the <strong>UNICEF Venture Fund</strong> as part of our
                         commitment to creating sustainable, scalable solutions for the most vulnerable populations.
                     </p>
+
+                    <div className="flex flex-col sm:flex-row gap-4 pt-4">
+                        <Button asChild className="bg-[#008080] hover:bg-[#006666] text-white">
+                            <a href="https://github.com/etutorng/etutors-imara-core.git" target="_blank" rel="noopener noreferrer">
+                                <Github className="mr-2 h-4 w-4" />
+                                View on GitHub
+                            </a>
+                        </Button>
+                        <Button asChild variant="outline" className="border-[#008080] text-[#008080] hover:bg-[#008080] hover:text-white">
+                            <Link href="/docs">
+                                <BookOpen className="mr-2 h-4 w-4" />
+                                Read the Docs
+                            </Link>
+                        </Button>
+                    </div>
                 </section>
             </div>
         </div>
