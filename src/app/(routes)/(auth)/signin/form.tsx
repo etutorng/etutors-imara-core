@@ -15,27 +15,35 @@ import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
-import { SignInSchema, SignInValues } from "./validate";
+import { useLanguage } from "@/lib/i18n/language-context";
+import { createSignInSchema, SignInValues } from "./validate";
 import InputStartIcon from "../components/input-start-icon";
 import InputPasswordContainer from "../components/input-password";
 import { cn } from "@/lib/utils";
-import { AtSign } from "lucide-react";
+import { Phone } from "lucide-react";
 
 export default function SignInForm() {
   const [isPending, startTransition] = useTransition();
   const router = useRouter();
+  const { t } = useLanguage();
 
   const form = useForm<SignInValues>({
-    resolver: zodResolver(SignInSchema),
+    resolver: zodResolver(createSignInSchema(t)),
     defaultValues: {
-      username: "",
+      phoneNumber: "",
       password: "",
     },
   });
 
   function onSubmit(data: SignInValues) {
     startTransition(async () => {
-      const response = await signIn.username(data);
+      // Clean phone number to use as username
+      const cleanPhone = data.phoneNumber.replace(/[^0-9]/g, "");
+
+      const response = await signIn.username({
+        username: cleanPhone,
+        password: data.password,
+      });
 
       if (response.error) {
         console.log("SIGN_IN:", response.error.message);
@@ -60,14 +68,14 @@ export default function SignInForm() {
       >
         <FormField
           control={form.control}
-          name="username"
+          name="phoneNumber"
           render={({ field }) => (
             <FormItem>
               <FormControl>
-                <InputStartIcon icon={AtSign}>
+                <InputStartIcon icon={Phone}>
                   <Input
-                    placeholder="Username"
-                    className={cn("peer ps-9", getInputClassName("username"))}
+                    placeholder="Phone Number"
+                    className={cn("peer ps-9", getInputClassName("phoneNumber"))}
                     disabled={isPending}
                     {...field}
                   />

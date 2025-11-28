@@ -4,6 +4,8 @@ import { user } from "./auth/user";
 export const mentors = pgTable("mentors", {
     id: uuid("id").primaryKey().defaultRandom(),
     userId: text("user_id").references(() => user.id).notNull(),
+    name: text("name").notNull(),
+    imageUrl: text("image_url"),
     expertise: text("expertise").notNull(), // Health, Career, Education
     bio: text("bio").notNull(),
     verified: boolean("verified").default(false).notNull(),

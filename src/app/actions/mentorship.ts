@@ -46,16 +46,18 @@ export async function getMessages(otherUserId: string) {
         ),
         orderBy: (messages, { asc }) => [asc(messages.createdAt)],
     });
-
     return conversation;
 }
 
 export async function getMentors() {
     const allMentors = await db.query.mentors.findMany({
-        where: eq(mentors.verified, true),
-        with: {
-            // Assuming we want to fetch user details too, but we need to define relation in schema first
-            // For now, we'll just return mentor records.
+        columns: {
+            id: true,
+            name: true,
+            imageUrl: true,
+            expertise: true,
+            bio: true,
+            verified: true,
         },
     });
     return allMentors;

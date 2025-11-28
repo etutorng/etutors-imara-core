@@ -29,6 +29,17 @@ export async function getCourse(id: string) {
     return course;
 }
 
+export async function getAlternateCourse(category: string, currentLanguage: string) {
+    const targetLanguage = currentLanguage === "en" ? "ha" : "en";
+    const course = await db.query.courses.findFirst({
+        where: and(
+            eq(courses.category, category),
+            eq(courses.language, targetLanguage)
+        ),
+    });
+    return course;
+}
+
 export async function updateProgress(moduleId: string) {
     const session = await auth.api.getSession({
         headers: await headers(),

@@ -8,7 +8,7 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import { useTransition, useState } from "react";
+import { useTransition } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { signUp } from "@/lib/auth/client";
@@ -16,48 +16,51 @@ import { redirect } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
-import { SignUpSchema, SignUpValues } from "./validate";
+import { SignUpValues } from "./validate";
 import InputStartIcon from "../components/input-start-icon";
 import InputPasswordContainer from "../components/input-password";
 import { cn } from "@/lib/utils";
-import { AtSign, MailIcon, UserIcon, AlertCircle } from "lucide-react";
-import { GenderRadioGroup } from "../components/gender-radio-group";
+import { Phone, UserIcon } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
 import Link from "next/link";
+import { useLanguage } from "@/lib/i18n/language-context";
 import { languages } from "@/lib/i18n/translations";
+import { createSignUpSchema, SignUpValues } from "./validate";
 
 export default function SignUpForm() {
   const [isPending, startTransition] = useTransition();
-  const [showMaleError, setShowMaleError] = useState(false);
+  const { t } = useLanguage();
 
   const form = useForm<SignUpValues>({
-    resolver: zodResolver(SignUpSchema),
+    resolver: zodResolver(createSignUpSchema(t)),
     defaultValues: {
       name: "",
-      email: "",
-      username: "",
+      phoneNumber: "",
       password: "",
       confirmPassword: "",
-      gender: false,
       language: "en",
       acceptTerms: false,
     },
   });
 
   function onSubmit(data: SignUpValues) {
-    // Check if male was selected
-    if (data.gender === false) {
-      setShowMaleError(true);
-      return;
-    }
-
     startTransition(async () => {
-      console.log("submit data:", data);
-
       // Save language preference to localStorage
       localStorage.setItem("language", data.language);
 
-      const response = await signUp.email(data);
+      // Generate dummy email and username from phone number
+      // Remove spaces and special chars from phone for username
+      const cleanPhone = data.phoneNumber.replace(/[^0-9]/g, "");
+      const dummyEmail = `${cleanPhone}@imara.app`;
+
+      const response = await signUp.email({
+        email: dummyEmail,
+        password: data.password,
+        name: data.name,
+        username: cleanPhone, // Use phone number as username
+        gender: true, // Implicitly female
+        image: undefined, // Optional
+      });
 
       if (response.error) {
         console.log("SIGN_UP:", response.error.status);
@@ -74,39 +77,6 @@ export default function SignUpForm() {
       "border-destructive/80 text-destructive focus-visible:border-destructive/80 focus-visible:ring-destructive/20",
     );
 
-  if (showMaleError) {
-    return (
-      <div className="z-50 my-8 flex w-full flex-col items-center gap-6 text-center">
-        <div className="rounded-full bg-destructive/10 p-4">
-          <AlertCircle className="h-12 w-12 text-destructive" />
-        </div>
-        <div className="space-y-2">
-          <h2 className="text-2xl font-bold">Platform for Women Only</h2>
-          <p className="text-muted-foreground max-w-md">
-            Sorry, Project Imara is exclusively for young women and girls.
-            This platform is designed to provide a safe space for female empowerment.
-          </p>
-        </div>
-        <div className="flex flex-col gap-2 w-full">
-          <Button
-            variant="outline"
-            onClick={() => setShowMaleError(false)}
-            className="w-full"
-          >
-            Go Back
-          </Button>
-          <Button
-            variant="ghost"
-            asChild
-            className="w-full"
-          >
-            <Link href="/">Return to Homepage</Link>
-          </Button>
-        </div>
-      </div>
-    );
-  }
-
   return (
     <Form {...form}>
       <form
@@ -121,7 +91,7 @@ export default function SignUpForm() {
               <FormControl>
                 <InputStartIcon icon={UserIcon}>
                   <Input
-                    placeholder="Name"
+                    placeholder="Full Name"
                     className={cn("peer ps-9", getInputClassName("name"))}
                     disabled={isPending}
                     {...field}
@@ -135,34 +105,14 @@ export default function SignUpForm() {
 
         <FormField
           control={form.control}
-          name="email"
+          name="phoneNumber"
           render={({ field }) => (
             <FormItem>
               <FormControl>
-                <InputStartIcon icon={MailIcon}>
+                <InputStartIcon icon={Phone}>
                   <Input
-                    placeholder="Email"
-                    className={cn("peer ps-9", getInputClassName("email"))}
-                    disabled={isPending}
-                    {...field}
-                  />
-                </InputStartIcon>
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        <FormField
-          control={form.control}
-          name="username"
-          render={({ field }) => (
-            <FormItem>
-              <FormControl>
-                <InputStartIcon icon={AtSign}>
-                  <Input
-                    placeholder="Username"
-                    className={cn("peer ps-9", getInputClassName("username"))}
+                    placeholder="Phone Number (e.g. 08012345678)"
+                    className={cn("peer ps-9", getInputClassName("phoneNumber"))}
                     disabled={isPending}
                     {...field}
                   />
@@ -238,22 +188,6 @@ export default function SignUpForm() {
           )}
         />
 
-        {/* Gender */}
-        <FormField
-          control={form.control}
-          name="gender"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Gender</FormLabel>
-              <GenderRadioGroup
-                value={field.value}
-                onChange={field.onChange}
-              />
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
         {/* Privacy Policy Acceptance */}
         <FormField
           control={form.control}
@@ -268,14 +202,14 @@ export default function SignUpForm() {
                 />
               </FormControl>
               <div className="space-y-1 leading-none">
-                <FormLabel className="text-sm font-normal">
-                  I confirm that I am female and accept the{" "}
+                <FormLabel className="text-sm font-normal block leading-normal">
+                  {t("auth.acceptTerms")}{" "}
                   <Link
                     href="/privacy"
-                    className="text-primary hover:underline"
+                    className="text-primary hover:underline inline"
                     target="_blank"
                   >
-                    Privacy Policy
+                    {t("auth.privacyPolicy")}
                   </Link>
                 </FormLabel>
                 <FormMessage />

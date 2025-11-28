@@ -1,19 +1,14 @@
-import z from "zod/v4";
+import { z } from "zod";
+import { TranslationKey } from "@/lib/i18n/translations";
 
-export const passwordSchema = z
+export const createPasswordSchema = (t: (key: TranslationKey) => string) => z
   .string()
-  .min(8, {
-    message: "Password must be at least 8 characters long.",
+  .min(6, {
+    message: t("auth.password.min"),
   })
-  .regex(/[A-Z]/, {
-    message: "Password must contain at least one uppercase letter.",
-  })
-  .regex(/[a-z]/, {
-    message: "Password must contain at least one lowercase letter.",
-  })
-  .regex(/[0-9]/, {
-    message: "Password must contain at least one number.",
-  })
-  .regex(/[^A-Za-z0-9]/, {
-    message: "Password must contain at least one symbol.",
+  .refine((val) => {
+    const weakPasswords = ["123456", "password", "password123", "12345678", "qwerty"];
+    return !weakPasswords.includes(val.toLowerCase());
+  }, {
+    message: t("auth.password.weak"),
   });

@@ -24,6 +24,12 @@ export const pagesTranslations = {
         "lms.modules": "Modules",
         "lms.startLearning": "Start Learning",
         "lms.noCourses": "No courses available at the moment.",
+        "lms.switchAudio": "Switch Audio",
+        "lms.download": "Download",
+        "lms.aboutLesson": "About this Lesson",
+        "lms.noModules": "No modules available for this course.",
+        "lms.noAlternateAudio": "No alternate audio available.",
+        "lms.downloadStarted": "Download started...",
 
         // Mentorship
         "mentorship.title": "Find a Mentor",
@@ -77,6 +83,12 @@ export const pagesTranslations = {
         "lms.modules": "Kayayyaki",
         "lms.startLearning": "Fara Koyo",
         "lms.noCourses": "Babu darussan da ake samu a yanzu.",
+        "lms.switchAudio": "Canza Sauti",
+        "lms.download": "Sauke",
+        "lms.aboutLesson": "Game da wannan darasin",
+        "lms.noModules": "Babu kayayyaki don wannan darasin.",
+        "lms.noAlternateAudio": "Babu wani sauti da ake samu.",
+        "lms.downloadStarted": "An fara saukewa...",
 
         // Mentorship
         "mentorship.title": "Nemo Jagora",
@@ -130,6 +142,12 @@ export const pagesTranslations = {
         "lms.modules": "Ngalaba",
         "lms.startLearning": "Malite Mmụta",
         "lms.noCourses": "Enweghị nkuzi dị ugbu a.",
+        "lms.switchAudio": "Gbanwee Audio",
+        "lms.download": "Budata",
+        "lms.aboutLesson": "Banyere nkuzi a",
+        "lms.noModules": "Enweghị modul dị maka nkuzi a.",
+        "lms.noAlternateAudio": "Enweghị ọdịyo ọzọ dị.",
+        "lms.downloadStarted": "Nbudata amalitela...",
 
         // Mentorship
         "mentorship.title": "Chọta Onye Nduzi",
@@ -183,6 +201,12 @@ export const pagesTranslations = {
         "lms.modules": "Awọn Ẹya",
         "lms.startLearning": "Bẹrẹ Kikọ Ẹkọ",
         "lms.noCourses": "Ko si awọn ẹkọ ti o wa ni akoko yii.",
+        "lms.switchAudio": "Yipada Audio",
+        "lms.download": "Ṣe igbasilẹ",
+        "lms.aboutLesson": "Nipa ẹkọ yii",
+        "lms.noModules": "Ko si awọn modulu ti o wa fun iṣẹ-ẹkọ yii.",
+        "lms.noAlternateAudio": "Ko si ohun miiran ti o wa.",
+        "lms.downloadStarted": "Igbasilẹ ti bẹrẹ...",
 
         // Mentorship
         "mentorship.title": "Wa Olukọni",
@@ -236,6 +260,12 @@ export const pagesTranslations = {
         "lms.modules": "Modules",
         "lms.startLearning": "Start Learning",
         "lms.noCourses": "No courses dey available now.",
+        "lms.switchAudio": "Change Audio",
+        "lms.download": "Download",
+        "lms.aboutLesson": "About dis lesson",
+        "lms.noModules": "No modules dey for dis course.",
+        "lms.noAlternateAudio": "No other audio dey.",
+        "lms.downloadStarted": "Download don start...",
 
         // Mentorship
         "mentorship.title": "Find Mentor",

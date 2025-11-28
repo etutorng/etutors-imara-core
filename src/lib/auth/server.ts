@@ -10,9 +10,9 @@ export const auth = betterAuth({
   }),
   plugins: [username({
     minUsernameLength: 4,
-      maxUsernameLength: 10,
-      usernameValidator: (value) => !restrictedUsernames.includes(value),
-      usernameNormalization: (value) => value.toLowerCase(),
+    maxUsernameLength: 20,
+    usernameValidator: (value) => !restrictedUsernames.includes(value),
+    usernameNormalization: (value) => value.toLowerCase(),
   })],
   emailAndPassword: {
     enabled: true,
