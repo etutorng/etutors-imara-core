@@ -24,6 +24,7 @@ import { LanguageSwitcher } from "@/components/language-switcher";
 import { useSession, signOut } from "@/lib/auth/client";
 import { useLanguage } from "@/lib/i18n/language-context";
 import type { TranslationKey } from "@/lib/i18n/translations";
+import { FullLogo } from "@/components/full-logo";
 
 const publicNavItems: Array<{ href: string; labelKey: TranslationKey; icon: any }> = [
     { href: "/", labelKey: "nav.home", icon: Home },
@@ -70,12 +71,7 @@ export function Navbar() {
             <div className="container flex h-16 items-center justify-between px-4">
                 <div className="flex items-center gap-2">
                     <Link href={isAuthenticated ? "/dashboard" : "/"} className="flex items-center gap-2">
-                        <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-primary to-primary-foreground p-1">
-                            <div className="h-full w-full rounded bg-white/20" />
-                        </div>
-                        <span className="text-xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
-                            Imara
-                        </span>
+                        <FullLogo className="h-14 w-48" />
                     </Link>
                 </div>
 

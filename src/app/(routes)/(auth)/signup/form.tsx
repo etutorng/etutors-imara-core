@@ -81,7 +81,7 @@ export default function SignUpForm() {
     <Form {...form}>
       <form
         onSubmit={form.handleSubmit(onSubmit)}
-        className="z-50 my-8 flex w-full flex-col gap-5"
+        className="my-8 flex w-full flex-col gap-5"
       >
         <FormField
           control={form.control}
@@ -91,7 +91,7 @@ export default function SignUpForm() {
               <FormControl>
                 <InputStartIcon icon={UserIcon}>
                   <Input
-                    placeholder="Full Name"
+                    placeholder={t("auth.placeholder.name")}
                     className={cn("peer ps-9", getInputClassName("name"))}
                     disabled={isPending}
                     {...field}
@@ -111,7 +111,7 @@ export default function SignUpForm() {
               <FormControl>
                 <InputStartIcon icon={Phone}>
                   <Input
-                    placeholder="Phone Number (e.g. 08012345678)"
+                    placeholder={t("auth.placeholder.phoneExample")}
                     className={cn("peer ps-9", getInputClassName("phoneNumber"))}
                     disabled={isPending}
                     {...field}
@@ -132,7 +132,7 @@ export default function SignUpForm() {
                 <InputPasswordContainer>
                   <Input
                     className={cn("pe-9", getInputClassName("password"))}
-                    placeholder="Password"
+                    placeholder={t("auth.password")}
                     disabled={isPending}
                     {...field}
                   />
@@ -152,7 +152,7 @@ export default function SignUpForm() {
                 <InputPasswordContainer>
                   <Input
                     className={cn("pe-9", getInputClassName("confirmPassword"))}
-                    placeholder="Confirm Password"
+                    placeholder={t("auth.confirmPassword")}
                     disabled={isPending}
                     {...field}
                   />
@@ -169,7 +169,7 @@ export default function SignUpForm() {
           name="language"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Preferred Language</FormLabel>
+              <FormLabel>{t("auth.language")}</FormLabel>
               <FormControl>
                 <select
                   {...field}
@@ -219,7 +219,7 @@ export default function SignUpForm() {
         />
 
         <Button type="submit" disabled={isPending} className="mt-5 w-full">
-          Sign Up
+          {t("auth.signup.button")}
         </Button>
       </form>
     </Form>

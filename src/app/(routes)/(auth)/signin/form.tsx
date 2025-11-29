@@ -64,7 +64,7 @@ export default function SignInForm() {
     <Form {...form}>
       <form
         onSubmit={form.handleSubmit(onSubmit)}
-        className="z-50 my-8 flex w-full flex-col gap-5"
+        className="my-8 flex w-full flex-col gap-5"
       >
         <FormField
           control={form.control}
@@ -74,7 +74,7 @@ export default function SignInForm() {
               <FormControl>
                 <InputStartIcon icon={Phone}>
                   <Input
-                    placeholder="Phone Number"
+                    placeholder={t("auth.placeholder.phone")}
                     className={cn("peer ps-9", getInputClassName("phoneNumber"))}
                     disabled={isPending}
                     {...field}
@@ -96,7 +96,7 @@ export default function SignInForm() {
                   <Input
                     id="input-23"
                     className={cn("pe-9", getInputClassName("password"))}
-                    placeholder="Password"
+                    placeholder={t("auth.password")}
                     disabled={isPending}
                     {...field}
                   />
@@ -107,7 +107,7 @@ export default function SignInForm() {
           )}
         />
         <Button type="submit" disabled={isPending} className="mt-5 w-full">
-          Sign In
+          {t("auth.signin.button")}
         </Button>
       </form>
     </Form>
