@@ -14,7 +14,7 @@ RUN apk add --no-cache \
     giflib-dev
 
 # Enable pnpm
-RUN corepack enable && corepack prepare pnpm@latest --activate
+RUN corepack enable && corepack prepare pnpm@10.11.0 --activate
 
 # Copy package files
 COPY package.json pnpm-lock.yaml ./
@@ -49,7 +49,7 @@ RUN apk add --no-cache \
     wget
 
 # Enable pnpm
-RUN corepack enable && corepack prepare pnpm@latest --activate
+RUN corepack enable && corepack prepare pnpm@10.11.0 --activate
 
 # Create non-root user
 RUN addgroup --system --gid 1001 nodejs && \
