@@ -12,7 +12,12 @@
     "db:studio": "drizzle-kit studio",
     "db:seed:mentors": "tsx src/scripts/seed-mentors.ts",
     "db:seed:lms": "tsx src/scripts/seed-lms.ts",
-    "db:seed:resources": "tsx src/scripts/seed-resources.ts"
+    "db:seed:resources": "tsx src/scripts/seed-resources.ts",
+    "docker:build": "docker-compose build",
+    "docker:up": "docker-compose up -d",
+    "docker:down": "docker-compose down",
+    "docker:logs": "docker-compose logs -f",
+    "docker:restart": "docker-compose restart"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.2.2",

@@ -1,0 +1,153 @@
+services:
+  # PostgreSQL Database
+  postgres:
+    image: postgres:16-alpine
+    container_name: app-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${DB_NAME}
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_INITDB_ARGS: "-E UTF8 --locale=en_US.UTF-8"
+      PGDATA: /var/lib/postgresql/data/pgdata
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    expose:
+      - "5432"
+    networks:
+      - backend
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER} -d ${DB_NAME}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    security_opt:
+      - no-new-privileges:true
+    deploy:
+      resources:
+        limits:
+          cpus: '2.0'
+          memory: 2G
+        reservations:
+          cpus: '0.5'
+          memory: 512M
+
+  # Next.js Application
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        NODE_ENV: production
+        BUILD_STANDALONE: "true"
+    container_name: app-nextjs
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+        restart: true
+    environment:
+      # Database
+      DATABASE_URL: ${DATABASE_URL}
+      DIRECT_URL: ${DIRECT_URL:-${DATABASE_URL}}
+
+      # Auth
+      BETTER_AUTH_SECRET: ${BETTER_AUTH_SECRET}
+      BETTER_AUTH_URL: ${BETTER_AUTH_URL}
+
+      # App
+      NEXT_PUBLIC_BASE_URL: ${NEXT_PUBLIC_BASE_URL}
+      NEXT_PUBLIC_APP_URL: ${NEXT_PUBLIC_APP_URL}
+      NODE_ENV: production
+      PORT: 3000
+      HOSTNAME: "0.0.0.0"
+
+      # Storage
+      STORAGE_PROVIDER: ${STORAGE_PROVIDER:-local}
+      LOCAL_STORAGE_PATH: /app/uploads
+      LOCAL_STORAGE_URL: ${LOCAL_STORAGE_URL}
+
+      # Email (optional)
+      EMAIL_PROVIDER: ${EMAIL_PROVIDER:-smtp}
+      SMTP_HOST: ${SMTP_HOST:-}
+      SMTP_PORT: ${SMTP_PORT:-587}
+      SMTP_USERNAME: ${SMTP_USERNAME:-}
+      SMTP_PASSWORD: ${SMTP_PASSWORD:-}
+      SMTP_FROM_EMAIL: ${SMTP_FROM_EMAIL:-}
+      SMTP_FROM_NAME: ${SMTP_FROM_NAME:-}
+
+      # Encryption
+      ENCRYPTION_SECRET: ${ENCRYPTION_SECRET}
+
+      # Build config
+      BUILD_STANDALONE: "true"
+    volumes:
+      - uploads_data:/app/uploads
+    ports:
+      - "3000:3000"
+    networks:
+      - dokploy-network
+      - backend
+    healthcheck:
+      test: ["CMD-SHELL", "wget --no-verbose --tries=1 --spider http://localhost:3000 || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+    security_opt:
+      - no-new-privileges:true
+    tmpfs:
+      - /tmp:size=100M,mode=1777
+    deploy:
+      resources:
+        limits:
+          cpus: '2.0'
+          memory: 2G
+        reservations:
+          cpus: '0.5'
+          memory: 512M
+    labels:
+      # Enable Traefik (if using)
+      - "traefik.enable=true"
+      - "traefik.docker.network=dokploy-network"
+      
+      # Service configuration
+      - "traefik.http.services.app-service.loadbalancer.server.port=3000"
+      
+      # HTTP Router (redirect to HTTPS)
+      - "traefik.http.routers.app-http.rule=Host(`${APP_DOMAIN}`)"
+      - "traefik.http.routers.app-http.entrypoints=web"
+      - "traefik.http.routers.app-http.middlewares=app-redirect"
+      - "traefik.http.middlewares.app-redirect.redirectscheme.scheme=https"
+      - "traefik.http.middlewares.app-redirect.redirectscheme.permanent=true"
+      
+      # HTTPS Router
+      - "traefik.http.routers.app-https.rule=Host(`${APP_DOMAIN}`)"
+      - "traefik.http.routers.app-https.entrypoints=websecure"
+      - "traefik.http.routers.app-https.tls=true"
+      - "traefik.http.routers.app-https.tls.certresolver=letsencrypt"
+      - "traefik.http.routers.app-https.service=app-service"
+      
+      # Security headers
+      - "traefik.http.middlewares.app-security.headers.stsSeconds=31536000"
+      - "traefik.http.middlewares.app-security.headers.stsIncludeSubdomains=true"
+      - "traefik.http.middlewares.app-security.headers.stsPreload=true"
+      - "traefik.http.middlewares.app-security.headers.forceSTSHeader=true"
+      - "traefik.http.middlewares.app-security.headers.frameDeny=true"
+      - "traefik.http.middlewares.app-security.headers.contentTypeNosniff=true"
+      - "traefik.http.middlewares.app-security.headers.browserXssFilter=true"
+      - "traefik.http.routers.app-https.middlewares=app-security"
+
+volumes:
+  postgres_data:
+    driver: local
+  uploads_data:
+    driver: local
+
+networks:
+  dokploy-network:
+    external: true
+  backend:
+    driver: bridge
+    internal: true
