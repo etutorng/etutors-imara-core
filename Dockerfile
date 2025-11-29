@@ -30,7 +30,9 @@ RUN pnpm run db:generate || echo "No schema changes detected"
 
 # Build Next.js application
 ARG BUILD_STANDALONE
+ARG NEXT_PUBLIC_BASE_URL
 ENV BUILD_STANDALONE=true
+ENV NEXT_PUBLIC_BASE_URL=${NEXT_PUBLIC_BASE_URL}
 ENV NODE_ENV=production
 
 RUN pnpm run build
