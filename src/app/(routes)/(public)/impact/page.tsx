@@ -1,77 +1,82 @@
+"use client";
+
 import { StatCard } from "@/components/ui/stat-card";
 import { GradientCard } from "@/components/ui/gradient-card";
 import { Users, Scale, GraduationCap, Heart, TrendingUp } from "lucide-react";
-
-const metrics = [
-    {
-        title: "Women Empowered",
-        value: "5,247",
-        icon: Users,
-        description: "Active users on the platform",
-        trend: { value: 23, label: "vs last month", positive: true },
-        variant: "primary" as const,
-    },
-    {
-        title: "Legal Cases Resolved",
-        value: "127",
-        icon: Scale,
-        description: "Pro-bono cases completed",
-        trend: { value: 15, label: "vs last month", positive: true },
-        variant: "accent" as const,
-    },
-    {
-        title: "Skills Learned",
-        value: "892",
-        icon: GraduationCap,
-        description: "Course completions",
-        trend: { value: 31, label: "vs last month", positive: true },
-        variant: "primary" as const,
-    },
-    {
-        title: "Mentorship Sessions",
-        value: "1,456",
-        icon: Heart,
-        description: "1-on-1 guidance sessions",
-        trend: { value: 18, label: "vs last month", positive: true },
-        variant: "accent" as const,
-    },
-];
-
-const testimonials = [
-    {
-        name: "Amina K.",
-        location: "Kano State",
-        quote: "I learned tailoring through Imara in Hausa. Now I make money for my family. Thank you!",
-        category: "Vocational Training",
-    },
-    {
-        name: "Chidinma O.",
-        location: "Lagos",
-        quote: "The free legal aid helped me report workplace harassment. I got justice without paying a lawyer.",
-        category: "Legal Aid",
-    },
-    {
-        name: "Blessing A.",
-        location: "Enugu",
-        quote: "My mentor helped me understand my rights and gave me confidence to pursue education.",
-        category: "Mentorship",
-    },
-];
+import { useLanguage } from "@/lib/i18n/language-context";
 
 export default function ImpactPage() {
+    const { t } = useLanguage();
+
+    const metrics = [
+        {
+            title: t("impact.metric.women"),
+            value: "5,247",
+            icon: Users,
+            description: t("impact.metric.women.desc"),
+            trend: { value: 23, label: "vs last month", positive: true },
+            variant: "primary" as const,
+        },
+        {
+            title: t("impact.metric.legal"),
+            value: "127",
+            icon: Scale,
+            description: t("impact.metric.legal.desc"),
+            trend: { value: 15, label: "vs last month", positive: true },
+            variant: "accent" as const,
+        },
+        {
+            title: t("impact.metric.skills"),
+            value: "892",
+            icon: GraduationCap,
+            description: t("impact.metric.skills.desc"),
+            trend: { value: 31, label: "vs last month", positive: true },
+            variant: "primary" as const,
+        },
+        {
+            title: t("impact.metric.mentorship"),
+            value: "1,456",
+            icon: Heart,
+            description: t("impact.metric.mentorship.desc"),
+            trend: { value: 18, label: "vs last month", positive: true },
+            variant: "accent" as const,
+        },
+    ];
+
+    const testimonials = [
+        {
+            name: "Amina K.",
+            location: "Kano State",
+            quote: "I learned tailoring through Imara in Hausa. Now I make money for my family. Thank you!",
+            category: "Vocational Training",
+        },
+        {
+            name: "Chidinma O.",
+            location: "Lagos",
+            quote: "The free legal aid helped me report workplace harassment. I got justice without paying a lawyer.",
+            category: "Legal Aid",
+        },
+        {
+            name: "Blessing A.",
+            location: "Enugu",
+            quote: "My mentor helped me understand my rights and gave me confidence to pursue education.",
+            category: "Mentorship",
+        },
+    ];
+
     return (
         <div className="container mx-auto px-4 py-12 md:py-20 max-w-6xl">
             <div className="space-y-16">
                 {/* Header */}
                 <div className="text-center space-y-4 max-w-3xl mx-auto">
                     <h1 className="text-4xl md:text-5xl font-bold">
-                        Our{" "}
+                        {t("impact.title").split(" ")[0]}{" "}
                         <span className="bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
-                            Impact
+                            {t("impact.title").split(" ")[1]}
                         </span>
                     </h1>
                     <p className="text-xl text-muted-foreground">
-                        Transparency is at the heart of everything we do. Here's how we're making a difference.
+                        {t("impact.subtitle")}
                     </p>
                 </div>
 
@@ -79,11 +84,10 @@ export default function ImpactPage() {
                 <section className="space-y-6">
                     <div className="flex items-center gap-3">
                         <TrendingUp className="h-6 w-6 text-primary" />
-                        <h2 className="text-3xl font-bold">Live Impact Metrics</h2>
+                        <h2 className="text-3xl font-bold">{t("impact.metrics.title")}</h2>
                     </div>
                     <p className="text-muted-foreground">
-                        Real-time data showing the reach and effectiveness of Project Imara.
-                        Updated daily to maintain transparency for our stakeholders and funders.
+                        {t("impact.metrics.desc")}
                     </p>
                     <div className="grid md:grid-cols-2 gap-6">
                         {metrics.map((metric) => (
@@ -94,9 +98,9 @@ export default function ImpactPage() {
 
                 {/* Success Stories */}
                 <section className="space-y-6">
-                    <h2 className="text-3xl font-bold">Success Stories</h2>
+                    <h2 className="text-3xl font-bold">{t("impact.stories.title")}</h2>
                     <p className="text-muted-foreground">
-                        Real stories from real women. Names have been changed to protect privacy.
+                        {t("impact.stories.desc")}
                     </p>
                     <div className="grid md:grid-cols-3 gap-6">
                         {testimonials.map((testimonial, index) => (
@@ -118,28 +122,27 @@ export default function ImpactPage() {
 
                 {/* Transparency Commitment */}
                 <GradientCard variant="primary" className="p-8">
-                    <h2 className="text-2xl font-bold mb-4">Our Transparency Commitment</h2>
+                    <h2 className="text-2xl font-bold mb-4">{t("impact.transparency.title")}</h2>
                     <div className="space-y-4 text-muted-foreground">
                         <p>
-                            As an open-source project seeking UNICEF Venture Fund support, we are committed to
-                            complete transparency in our operations, impact, and use of funds.
+                            {t("impact.transparency.p1")}
                         </p>
                         <ul className="space-y-2 ml-6">
                             <li className="flex items-start gap-2">
                                 <span className="text-primary mt-1">•</span>
-                                <span><strong>Open Data:</strong> All impact metrics are publicly available and updated in real-time.</span>
+                                <span><strong>{t("impact.transparency.data").split(":")[0]}:</strong>{t("impact.transparency.data").split(":")[1]}</span>
                             </li>
                             <li className="flex items-start gap-2">
                                 <span className="text-primary mt-1">•</span>
-                                <span><strong>Open Source:</strong> Our entire codebase is available on GitHub under MIT License.</span>
+                                <span><strong>{t("impact.transparency.source").split(":")[0]}:</strong>{t("impact.transparency.source").split(":")[1]}</span>
                             </li>
                             <li className="flex items-start gap-2">
                                 <span className="text-primary mt-1">•</span>
-                                <span><strong>Community Governance:</strong> Major decisions are made with community input.</span>
+                                <span><strong>{t("impact.transparency.governance").split(":")[0]}:</strong>{t("impact.transparency.governance").split(":")[1]}</span>
                             </li>
                             <li className="flex items-start gap-2">
                                 <span className="text-primary mt-1">•</span>
-                                <span><strong>Privacy Protected:</strong> While we're transparent about impact, user privacy is never compromised.</span>
+                                <span><strong>{t("impact.transparency.privacy").split(":")[0]}:</strong>{t("impact.transparency.privacy").split(":")[1]}</span>
                             </li>
                         </ul>
                     </div>
@@ -147,9 +150,9 @@ export default function ImpactPage() {
 
                 {/* Language Breakdown */}
                 <section className="space-y-6">
-                    <h2 className="text-3xl font-bold">Language Distribution</h2>
+                    <h2 className="text-3xl font-bold">{t("impact.language.title")}</h2>
                     <p className="text-muted-foreground">
-                        Breaking down barriers by serving users in their preferred language.
+                        {t("impact.language.desc")}
                     </p>
                     <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
                         {[
