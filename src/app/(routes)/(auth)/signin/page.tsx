@@ -2,10 +2,14 @@
 
 import SignInForm from "./form";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import { useLanguage } from "@/lib/i18n/language-context";
 
 export default function SignInPage() {
   const { t } = useLanguage();
+  const searchParams = useSearchParams();
+  const redirect = searchParams.get("redirect");
+  const signUpHref = redirect ? `/signup?redirect=${encodeURIComponent(redirect)}` : "/signup";
 
   return (
     <div className="flex min-h-screen w-full flex-col items-center justify-center">
@@ -14,7 +18,7 @@ export default function SignInPage() {
         <SignInForm />
         <div className="flex items-center justify-center gap-2">
           <small>{t("auth.noAccount")}</small>
-          <Link href={"/signup"} className="text-sm font-bold leading-none">
+          <Link href={signUpHref} className="text-sm font-bold leading-none">
             {t("auth.signup.link")}
           </Link>
         </div>

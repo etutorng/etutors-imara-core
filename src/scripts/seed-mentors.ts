@@ -32,7 +32,7 @@ async function seedMentors() {
         const mockMentors = [
             {
                 userId: dummyUser.id,
-                name: "Councillor Aisha",
+                name: "Counsellor Aisha",
                 expertise: "Health",
                 bio: "Experienced community health worker specializing in maternal care and nutrition. Speaks Hausa and English.",
                 imageUrl: "https://api.dicebear.com/7.x/avataaars/svg?seed=Aisha&backgroundColor=c0aede",

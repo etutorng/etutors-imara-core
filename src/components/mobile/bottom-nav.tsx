@@ -14,11 +14,11 @@ import {
 import { useLanguage } from "@/lib/i18n/language-context";
 
 const navItems = [
-    { href: "/dashboard", labelKey: "bottomnav.home" as const, icon: Home },
-    { href: "/legal", labelKey: "bottomnav.legal" as const, icon: Scale },
-    { href: "/lms", labelKey: "bottomnav.learn" as const, icon: GraduationCap },
-    { href: "/mentorship", labelKey: "bottomnav.mentors" as const, icon: Users },
-    { href: "/resources", labelKey: "bottomnav.more" as const, icon: BookOpen },
+    { href: "/dashboard", labelKey: "nav.dashboard" as const, icon: Home },
+    { href: "/legal", labelKey: "nav.legal" as const, icon: Scale },
+    { href: "/dashboard/lms", labelKey: "nav.lms" as const, icon: GraduationCap },
+    { href: "/dashboard/counselling", labelKey: "nav.mentorship" as const, icon: Users },
+    { href: "/resources", labelKey: "nav.resources" as const, icon: BookOpen },
 ];
 
 export function BottomNav() {

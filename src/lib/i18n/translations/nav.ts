@@ -9,7 +9,7 @@ export const navTranslations = {
         "nav.dashboard": "Dashboard",
         "nav.legal": "Legal Aid",
         "nav.lms": "Learn a Trade",
-        "nav.mentorship": "Mentorship",
+        "nav.mentorship": "Counselling",
         "nav.resources": "Resources",
         "nav.signin": "Sign In",
         "nav.signup": "Sign Up",

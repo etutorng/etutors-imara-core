@@ -11,7 +11,7 @@ import { useTransition } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { signIn } from "@/lib/auth/client";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
@@ -35,6 +35,9 @@ export default function SignInForm() {
     },
   });
 
+  const searchParams = useSearchParams();
+  const redirectUrl = searchParams.get("redirect") || "/dashboard";
+
   function onSubmit(data: SignInValues) {
     startTransition(async () => {
       // Clean phone number to use as username
@@ -49,7 +52,7 @@ export default function SignInForm() {
         console.log("SIGN_IN:", response.error.message);
         toast.error(response.error.message);
       } else {
-        router.push("/dashboard");
+        router.push(redirectUrl);
       }
     });
   }

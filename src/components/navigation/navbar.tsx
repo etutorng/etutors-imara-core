@@ -36,9 +36,9 @@ const publicNavItems: Array<{ href: string; labelKey: TranslationKey; icon: any 
 
 const authNavItems: Array<{ href: string; labelKey: TranslationKey; icon: any }> = [
     { href: "/dashboard", labelKey: "nav.dashboard", icon: LayoutDashboard },
-    { href: "/legal", labelKey: "nav.legal", icon: Scale },
-    { href: "/lms", labelKey: "nav.lms", icon: GraduationCap },
-    { href: "/mentorship", labelKey: "nav.mentorship", icon: Users },
+    { href: "/dashboard/legal", labelKey: "nav.legal", icon: Scale },
+    { href: "/dashboard/lms", labelKey: "nav.lms", icon: GraduationCap },
+    { href: "/dashboard/counselling", labelKey: "nav.mentorship", icon: Users },
     { href: "/resources", labelKey: "nav.resources", icon: BookOpen },
 ];
 

@@ -39,7 +39,7 @@ export default function HomePage() {
       title: t("home.feature.mentorship.title"),
       description: t("home.feature.mentorship.description"),
       variant: "primary" as const,
-      href: "/mentorship",
+      href: "/counselling",
     },
     {
       icon: BookOpen,

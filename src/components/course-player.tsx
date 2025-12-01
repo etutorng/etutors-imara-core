@@ -24,14 +24,19 @@ interface Course {
 interface CoursePlayerProps {
     course: Course;
     alternateCourseId?: string;
+    isPreview?: boolean;
 }
 
-export function CoursePlayer({ course, alternateCourseId }: CoursePlayerProps) {
+export function CoursePlayer({ course, alternateCourseId, isPreview = false }: CoursePlayerProps) {
     const router = useRouter();
     const { t } = useLanguage();
     const activeModule = course.modules[0]; // Default to first module for now
 
     const handleSwitchAudio = () => {
+        if (isPreview) {
+            toast.error(t("lms.signupToAccess", "Sign up to switch audio languages"));
+            return;
+        }
         if (alternateCourseId) {
             router.push(`/lms/${alternateCourseId}`);
         } else {
@@ -40,6 +45,10 @@ export function CoursePlayer({ course, alternateCourseId }: CoursePlayerProps) {
     };
 
     const handleDownload = () => {
+        if (isPreview) {
+            toast.error(t("lms.signupToAccess", "Sign up to download lessons"));
+            return;
+        }
         console.log("Downloading course:", course.title);
         toast.success(t("lms.downloadStarted"));
     };

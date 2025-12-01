@@ -30,14 +30,15 @@ export const pagesTranslations = {
         "lms.noModules": "No modules available for this course.",
         "lms.noAlternateAudio": "No alternate audio available.",
         "lms.downloadStarted": "Download started...",
+        "lms.signupToAccess": "Sign up to access this feature",
 
         // Mentorship
-        "mentorship.title": "Find a Mentor",
+        "mentorship.title": "Find a Counsellor",
         "mentorship.description": "Connect with experienced women who can guide you.",
-        "mentorship.mentor": "Mentor",
+        "mentorship.mentor": "Counsellor",
         "mentorship.verified": "Verified",
-        "mentorship.requestMentorship": "Request Mentorship",
-        "mentorship.noMentors": "No mentors available at the moment. Please check back later.",
+        "mentorship.requestMentorship": "Request Counselling",
+        "mentorship.noMentors": "No counsellors available at the moment. Please check back later.",
 
         // Resources
         "resources.title": "Resource Library",
@@ -49,7 +50,7 @@ export const pagesTranslations = {
         "bottomnav.home": "Home",
         "bottomnav.legal": "Legal",
         "bottomnav.learn": "Learn",
-        "bottomnav.mentors": "Mentors",
+        "bottomnav.mentors": "Counselling",
         "bottomnav.more": "More",
 
         // Common
@@ -194,6 +195,7 @@ export const pagesTranslations = {
         "lms.noModules": "Babu kayayyaki don wannan darasin.",
         "lms.noAlternateAudio": "Babu wani sauti da ake samu.",
         "lms.downloadStarted": "An fara saukewa...",
+        "lms.signupToAccess": "Yi rajista don samun damar wannan fasalin",
 
         // Mentorship
         "mentorship.title": "Nemo Jagora",
@@ -257,6 +259,7 @@ export const pagesTranslations = {
         "lms.noModules": "Enweghị modul dị maka nkuzi a.",
         "lms.noAlternateAudio": "Enweghị ọdịyo ọzọ dị.",
         "lms.downloadStarted": "Nbudata amalitela...",
+        "lms.signupToAccess": "Debanye aha iji nweta atụmatụ a",
 
         // Mentorship
         "mentorship.title": "Chọta Onye Nduzi",
@@ -320,6 +323,7 @@ export const pagesTranslations = {
         "lms.noModules": "Ko si awọn modulu ti o wa fun iṣẹ-ẹkọ yii.",
         "lms.noAlternateAudio": "Ko si ohun miiran ti o wa.",
         "lms.downloadStarted": "Igbasilẹ ti bẹrẹ...",
+        "lms.signupToAccess": "Forukọsilẹ lati wọle si ẹya yii",
 
         // Mentorship
         "mentorship.title": "Wa Olukọni",
@@ -383,6 +387,7 @@ export const pagesTranslations = {
         "lms.noModules": "No modules dey for dis course.",
         "lms.noAlternateAudio": "No other audio dey.",
         "lms.downloadStarted": "Download don start...",
+        "lms.signupToAccess": "Sign up to use dis feature",
 
         // Mentorship
         "mentorship.title": "Find Mentor",

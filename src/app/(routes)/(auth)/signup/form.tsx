@@ -12,7 +12,7 @@ import { useTransition } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { signUp } from "@/lib/auth/client";
-import { redirect } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
@@ -30,6 +30,7 @@ import { createSignUpSchema, SignUpValues } from "./validate";
 export default function SignUpForm() {
   const [isPending, startTransition] = useTransition();
   const { t } = useLanguage();
+  const router = useRouter();
 
   const form = useForm<SignUpValues>({
     resolver: zodResolver(createSignUpSchema(t)),
@@ -42,6 +43,9 @@ export default function SignUpForm() {
       acceptTerms: false,
     },
   });
+
+  const searchParams = useSearchParams();
+  const redirectUrl = searchParams.get("redirect") || "/dashboard";
 
   function onSubmit(data: SignUpValues) {
     startTransition(async () => {
@@ -66,7 +70,7 @@ export default function SignUpForm() {
         console.log("SIGN_UP:", response.error.status);
         toast.error(response.error.message);
       } else {
-        redirect("/dashboard");
+        router.push(redirectUrl);
       }
     });
   }

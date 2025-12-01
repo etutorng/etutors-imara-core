@@ -32,7 +32,17 @@ export default function DashboardPage() {
         mentorMessages: 4,
     };
 
-    const recentActivity = [
+    type ActivityItem = {
+        type: string;
+        title: string;
+        icon: any;
+        color: string;
+        progress?: number;
+        status?: string;
+        time?: string;
+    };
+
+    const recentActivity: ActivityItem[] = [
         {
             type: "course",
             title: "Digital Literacy Basics",
@@ -61,21 +71,21 @@ export default function DashboardPage() {
             title: "Submit Legal Request",
             description: "Get free legal aid",
             icon: Scale,
-            href: "/legal",
+            href: "/dashboard/legal",
             variant: "primary" as const,
         },
         {
             title: "Browse Courses",
             description: "Learn new skills",
             icon: GraduationCap,
-            href: "/lms",
+            href: "/dashboard/lms",
             variant: "accent" as const,
         },
         {
             title: "Find a Mentor",
             description: "Get guidance",
             icon: Users,
-            href: "/mentorship",
+            href: "/dashboard/counselling",
             variant: "primary" as const,
         },
         {
@@ -226,7 +236,7 @@ export default function DashboardPage() {
                                 {t("dashboard.keepGoing")}
                             </p>
                             <Button asChild>
-                                <Link href="/lms">
+                                <Link href="/dashboard/lms">
                                     {t("dashboard.continueLearning")}
                                     <ArrowRight className="ml-2 h-4 w-4" />
                                 </Link>

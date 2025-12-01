@@ -60,7 +60,7 @@ export default function ImpactPage() {
             name: "Blessing A.",
             location: "Enugu",
             quote: "My mentor helped me understand my rights and gave me confidence to pursue education.",
-            category: "Mentorship",
+            category: "Counselling",
         },
     ];
 
