@@ -3,11 +3,15 @@ import { z } from "zod";
 import { TranslationKey } from "@/lib/i18n/translations";
 
 export const createSignInSchema = (t: (key: TranslationKey) => string) => z.object({
-  phoneNumber: z
+  identifier: z
     .string()
-    .min(10, { message: t("auth.phone.invalid") })
-    .regex(/^[0-9+\s]+$/, t("auth.phone.invalid")),
-  password: createPasswordSchema(t),
+    .min(3, { message: t("auth.identifier.invalid") })
+    .refine((val) => {
+      const isEmail = z.string().email().safeParse(val).success;
+      const isPhone = /^[0-9+\s]+$/.test(val) && val.length >= 10;
+      return isEmail || isPhone;
+    }, { message: t("auth.identifier.invalid") }),
+  password: z.string().min(1, { message: t("auth.password.min") }),
 });
 
 export type SignInValues = z.infer<ReturnType<typeof createSignInSchema>>;

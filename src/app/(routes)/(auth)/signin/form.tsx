@@ -20,7 +20,8 @@ import { createSignInSchema, SignInValues } from "./validate";
 import InputStartIcon from "../components/input-start-icon";
 import InputPasswordContainer from "../components/input-password";
 import { cn } from "@/lib/utils";
-import { Phone } from "lucide-react";
+import { Mail } from "lucide-react";
+import { z } from "zod";
 
 export default function SignInForm() {
   const [isPending, startTransition] = useTransition();
@@ -30,7 +31,7 @@ export default function SignInForm() {
   const form = useForm<SignInValues>({
     resolver: zodResolver(createSignInSchema(t)),
     defaultValues: {
-      phoneNumber: "",
+      identifier: "",
       password: "",
     },
   });
@@ -40,13 +41,23 @@ export default function SignInForm() {
 
   function onSubmit(data: SignInValues) {
     startTransition(async () => {
-      // Clean phone number to use as username
-      const cleanPhone = data.phoneNumber.replace(/[^0-9]/g, "");
+      const isEmail = z.string().email().safeParse(data.identifier).success;
 
-      const response = await signIn.username({
-        username: cleanPhone,
-        password: data.password,
-      });
+      let response;
+
+      if (isEmail) {
+        response = await signIn.email({
+          email: data.identifier,
+          password: data.password,
+        });
+      } else {
+        // Clean phone number to use as username
+        const cleanPhone = data.identifier.replace(/[^0-9]/g, "");
+        response = await signIn.username({
+          username: cleanPhone,
+          password: data.password,
+        });
+      }
 
       if (response.error) {
         console.log("SIGN_IN:", response.error.message);
@@ -71,14 +82,14 @@ export default function SignInForm() {
       >
         <FormField
           control={form.control}
-          name="phoneNumber"
+          name="identifier"
           render={({ field }) => (
             <FormItem>
               <FormControl>
-                <InputStartIcon icon={Phone}>
+                <InputStartIcon icon={Mail}>
                   <Input
-                    placeholder={t("auth.placeholder.phone")}
-                    className={cn("peer ps-9", getInputClassName("phoneNumber"))}
+                    placeholder={t("auth.placeholder.identifier") || "Email or Phone"}
+                    className={cn("peer ps-9", getInputClassName("identifier"))}
                     disabled={isPending}
                     {...field}
                   />

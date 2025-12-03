@@ -1,4 +1,12 @@
-import { boolean, pgTable, text, timestamp } from "drizzle-orm/pg-core";
+import { boolean, pgEnum, pgTable, text, timestamp } from "drizzle-orm/pg-core";
+
+export const userRoleEnum = pgEnum("user_role", [
+  "SUPER_ADMIN",
+  "CONTENT_EDITOR",
+  "LEGAL_PARTNER",
+  "COUNSELLOR",
+  "USER"
+]);
 
 export const user = pgTable("user", {
   id: text("id").primaryKey(),
@@ -8,7 +16,10 @@ export const user = pgTable("user", {
   email: text("email").notNull().unique(),
   emailVerified: boolean("emailVerified").notNull(),
   image: text("image"),
-  role: text("role").default("member").notNull(),
+  role: userRoleEnum("role").default("USER").notNull(),
+  fullName: text("full_name"),
+  isActive: boolean("is_active").default(true),
+  genderSelfAttested: boolean("gender_self_attested").default(false),
   gender: boolean("gender").notNull(),
   createdAt: timestamp("createdAt").defaultNow(),
   updatedAt: timestamp("updatedAt")

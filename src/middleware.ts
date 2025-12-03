@@ -9,7 +9,7 @@ import {
 } from "./routes";
 
 export async function middleware(request: NextRequest) {
-    const session = getSessionCookie(request);
+    const sessionCookie = getSessionCookie(request);
 
     const isApiAuth = request.nextUrl.pathname.startsWith(apiAuthPrefix);
 
@@ -29,7 +29,7 @@ export async function middleware(request: NextRequest) {
     }
 
     if (isAuthRoute()) {
-        if (session) {
+        if (sessionCookie) {
             return NextResponse.redirect(
                 new URL(DEFAULT_LOGIN_REDIRECT, request.url),
             );
@@ -37,8 +37,48 @@ export async function middleware(request: NextRequest) {
         return NextResponse.next();
     }
 
-    if (!session && !isPublicRoute) {
+    if (!sessionCookie && !isPublicRoute) {
         return NextResponse.redirect(new URL("/signin", request.url));
+    }
+
+    // RBAC Logic
+    if (sessionCookie && request.nextUrl.pathname.startsWith("/admin")) {
+        try {
+            const res = await fetch(`${request.nextUrl.origin}/api/auth/get-session`, {
+                headers: {
+                    cookie: request.headers.get("cookie") || "",
+                },
+            });
+            const sessionData = await res.json();
+
+            if (!sessionData || !sessionData.user) {
+                return NextResponse.redirect(new URL("/signin", request.url));
+            }
+
+            const role = sessionData.user.role;
+
+            // 1. Protect All Admin Routes
+            if (request.nextUrl.pathname.startsWith("/admin/legal")) {
+                if (role !== "SUPER_ADMIN" && role !== "LEGAL_PARTNER") {
+                    return NextResponse.redirect(new URL("/unauthorized", request.url));
+                }
+            }
+
+            if (request.nextUrl.pathname.startsWith("/admin/content")) {
+                if (role !== "SUPER_ADMIN" && role !== "CONTENT_EDITOR") {
+                    return NextResponse.redirect(new URL("/unauthorized", request.url));
+                }
+            }
+
+            // General /admin access check
+            if (role === "USER") {
+                return NextResponse.redirect(new URL("/unauthorized", request.url));
+            }
+        } catch (error) {
+            console.error("Middleware session fetch error:", error);
+            // Fallback to signin if we can't verify session
+            return NextResponse.redirect(new URL("/signin", request.url));
+        }
     }
 
     return NextResponse.next();
