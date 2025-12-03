@@ -15,14 +15,27 @@ import {
     ArrowRight,
     BookOpen
 } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { useEffect } from "react";
 import Link from "next/link";
 import { useSession } from "@/lib/auth/client";
 import { useLanguage } from "@/lib/i18n/language-context";
 
 export default function DashboardPage() {
-    const { data: session } = useSession();
+    const { data: session, isPending } = useSession();
     const { t } = useLanguage();
+    const router = useRouter();
     const userName = session?.user?.name || "there";
+
+    useEffect(() => {
+        if (!isPending && !session) {
+            router.push("/signin");
+        }
+    }, [session, isPending, router]);
+
+    if (isPending || !session) {
+        return null; // Or a loading spinner
+    }
 
     // Mock data - replace with real data from API
     const stats = {

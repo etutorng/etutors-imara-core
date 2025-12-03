@@ -1,6 +1,8 @@
 import { headers } from "next/headers";
 import { auth } from "@/lib/auth/server";
 import { redirect } from "next/navigation";
+import { Sidebar } from "@/components/admin/sidebar";
+import { MobileSidebar } from "@/components/admin/mobile-sidebar";
 
 export default async function AdminLayout({
     children,
@@ -15,32 +17,30 @@ export default async function AdminLayout({
         redirect("/signin");
     }
 
-    const role = session.user.role;
+    const role = (session.user as any).role;
+    const user = {
+        name: session.user.name,
+        email: session.user.email,
+        image: session.user.image,
+    };
 
     return (
-        <div className="flex h-screen w-full">
-            <aside className="w-64 bg-gray-100 p-4 border-r">
-                <h2 className="text-xl font-bold mb-4">Admin Panel</h2>
-                <div className="text-sm text-gray-500 mb-4">Role: {role}</div>
-                <nav className="space-y-2">
-                    <a href="/admin" className="block p-2 hover:bg-gray-200 rounded">Dashboard</a>
+        <div className="flex h-screen w-full overflow-hidden">
+            {/* Desktop Sidebar */}
+            <Sidebar role={role} user={user} />
 
-                    {(role === "SUPER_ADMIN" || role === "CONTENT_EDITOR") && (
-                        <a href="/admin/content" className="block p-2 hover:bg-gray-200 rounded">Content</a>
-                    )}
+            <div className="flex flex-col flex-1 overflow-hidden">
+                {/* Mobile Header */}
+                <header className="flex h-14 items-center gap-4 border-b bg-gray-100/40 px-6 lg:hidden dark:bg-gray-800/40">
+                    <MobileSidebar role={role} user={user} />
+                    <div className="font-semibold">Imara Admin</div>
+                </header>
 
-                    {(role === "SUPER_ADMIN" || role === "LEGAL_PARTNER") && (
-                        <a href="/admin/legal" className="block p-2 hover:bg-gray-200 rounded">Legal</a>
-                    )}
-
-                    {role === "SUPER_ADMIN" && (
-                        <a href="/admin/users" className="block p-2 hover:bg-gray-200 rounded">Users</a>
-                    )}
-                </nav>
-            </aside>
-            <main className="flex-1 p-8 overflow-auto">
-                {children}
-            </main>
+                {/* Main Content */}
+                <main className="flex-1 overflow-auto p-8">
+                    {children}
+                </main>
+            </div>
         </div>
     );
 }

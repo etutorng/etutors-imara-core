@@ -18,7 +18,7 @@ async function main() {
     const password = "password123";
 
     for (const role of roles) {
-        const email = `${role.toLowerCase().replace("_", ".")}@example.com`;
+        const email = `${role.toLowerCase().replace("_", ".")}@imara.ng`;
 
         // Check if user exists
         const existingUser = await db.query.user.findFirst({
@@ -37,7 +37,7 @@ async function main() {
                     email,
                     password,
                     name: role.replace("_", " "),
-                    role: role, // This will be handled by the additionalFields config or we might need to update it manually if not exposed
+                    role: role,
                     gender: false,
                 }
             });

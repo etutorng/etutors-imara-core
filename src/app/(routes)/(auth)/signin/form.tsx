@@ -49,6 +49,7 @@ export default function SignInForm() {
         response = await signIn.email({
           email: data.identifier,
           password: data.password,
+          redirect: false,
         });
       } else {
         // Clean phone number to use as username
@@ -56,6 +57,7 @@ export default function SignInForm() {
         response = await signIn.username({
           username: cleanPhone,
           password: data.password,
+          redirect: false,
         });
       }
 
@@ -63,7 +65,18 @@ export default function SignInForm() {
         console.log("SIGN_IN:", response.error.message);
         toast.error(response.error.message);
       } else {
-        router.push(redirectUrl);
+        // Fetch session to check role
+        const sessionRes = await fetch("/api/auth/get-session");
+        const sessionData = await sessionRes.json();
+        const role = sessionData?.user?.role;
+
+        console.log("Login Success. Role:", role);
+
+        if (role && role !== "USER") {
+          router.push("/admin/dashboard");
+        } else {
+          router.push(redirectUrl);
+        }
       }
     });
   }

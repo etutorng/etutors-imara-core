@@ -29,11 +29,6 @@ export async function middleware(request: NextRequest) {
     }
 
     if (isAuthRoute()) {
-        if (sessionCookie) {
-            return NextResponse.redirect(
-                new URL(DEFAULT_LOGIN_REDIRECT, request.url),
-            );
-        }
         return NextResponse.next();
     }
 
@@ -69,6 +64,7 @@ export async function middleware(request: NextRequest) {
                     return NextResponse.redirect(new URL("/unauthorized", request.url));
                 }
             }
+
 
             // General /admin access check
             if (role === "USER") {
