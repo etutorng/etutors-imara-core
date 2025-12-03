@@ -5,7 +5,9 @@ import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { useLanguage } from "@/lib/i18n/language-context";
 
-export default function SignInPage() {
+import { Suspense } from "react";
+
+function SignInContent() {
   const { t } = useLanguage();
   const searchParams = useSearchParams();
   const redirect = searchParams.get("redirect");
@@ -24,5 +26,13 @@ export default function SignInPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function SignInPage() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <SignInContent />
+    </Suspense>
   );
 }

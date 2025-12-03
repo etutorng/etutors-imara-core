@@ -5,7 +5,9 @@ import { useSearchParams } from "next/navigation";
 import SignUpForm from "./form";
 import { useLanguage } from "@/lib/i18n/language-context";
 
-export default function SignUpPage() {
+import { Suspense } from "react";
+
+function SignUpContent() {
   const { t } = useLanguage();
   const searchParams = useSearchParams();
   const redirect = searchParams.get("redirect");
@@ -24,5 +26,13 @@ export default function SignUpPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function SignUpPage() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <SignUpContent />
+    </Suspense>
   );
 }
