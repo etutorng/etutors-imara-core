@@ -251,7 +251,7 @@ export default function HomePage() {
             <p className="text-sm text-muted-foreground">
               {t("home.cta.poweredBy")}{" "}
               <a
-                href="https://etutors.com.ng"
+                href="https://etutors.ng"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="text-primary hover:underline"

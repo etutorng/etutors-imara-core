@@ -12,7 +12,7 @@ export function Footer() {
                 <div className="flex items-center gap-4 text-sm text-muted-foreground">
                     <span>Powered by</span>
                     <Link
-                        href="https://etutors.com.ng"
+                        href="https://etutors.ng"
                         target="_blank"
                         rel="noreferrer"
                         className="font-medium underline underline-offset-4 hover:text-primary"
