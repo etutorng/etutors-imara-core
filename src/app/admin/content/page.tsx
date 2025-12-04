@@ -1,6 +1,6 @@
 import { db } from "@/db";
 import { resources } from "@/db/schema/resources";
-import { desc } from "drizzle-orm";
+import { desc, eq } from "drizzle-orm";
 import { ContentUploadForm } from "@/components/admin/content-upload-form";
 import { Button } from "@/components/ui/button";
 import {
@@ -11,26 +11,46 @@ import {
     DialogTitle,
     DialogTrigger,
 } from "@/components/ui/dialog";
-import { Plus, FileText, Video, Image as ImageIcon } from "lucide-react";
-import {
-    Table,
-    TableBody,
-    TableCell,
-    TableHead,
-    TableHeader,
-    TableRow,
-} from "@/components/ui/table";
-import { Badge } from "@/components/ui/badge";
+import { Plus } from "lucide-react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { MasterContentTable } from "@/components/admin/content/master-content-table";
 
 export default async function ContentPage() {
-    const contentList = await db.select().from(resources).orderBy(desc(resources.createdAt));
+    // Fetch all resources
+    const allResources = await db.select().from(resources).orderBy(desc(resources.createdAt));
+
+    // Group resources by groupId
+    const groupedMap = new Map();
+
+    allResources.forEach(res => {
+        if (!groupedMap.has(res.groupId)) {
+            // Initialize with the first item found (preferably master)
+            groupedMap.set(res.groupId, { ...res, translations: [] });
+        }
+
+        const group = groupedMap.get(res.groupId);
+
+        // If this is the master, update the main entry properties
+        if (res.isMaster) {
+            Object.assign(group, { ...res, translations: group.translations });
+        }
+
+        // Add to translations list
+        group.translations.push(res);
+    });
+
+    const groupedResources = Array.from(groupedMap.values());
+
+    // Filter by category for tabs
+    const vocationalCourses = groupedResources.filter(r => r.category === "vocational" || r.category === "education"); // Adjust categories as needed
+    const resourceLibrary = groupedResources.filter(r => r.category !== "vocational" && r.category !== "education");
 
     return (
         <div className="space-y-6">
             <div className="flex items-center justify-between">
                 <div>
                     <h1 className="text-3xl font-bold tracking-tight">Content Management</h1>
-                    <p className="text-muted-foreground">Upload and manage educational resources.</p>
+                    <p className="text-muted-foreground">Manage multilingual educational resources.</p>
                 </div>
                 <Dialog>
                     <DialogTrigger asChild>
@@ -43,7 +63,7 @@ export default async function ContentPage() {
                         <DialogHeader>
                             <DialogTitle>Upload New Content</DialogTitle>
                             <DialogDescription>
-                                Upload a file and provide details to add it to the library.
+                                Upload the master (English) version of the content.
                             </DialogDescription>
                         </DialogHeader>
                         <ContentUploadForm />
@@ -51,55 +71,18 @@ export default async function ContentPage() {
                 </Dialog>
             </div>
 
-            <div className="rounded-md border">
-                <Table>
-                    <TableHeader>
-                        <TableRow>
-                            <TableHead>Title</TableHead>
-                            <TableHead>Format</TableHead>
-                            <TableHead>Category</TableHead>
-                            <TableHead>Language</TableHead>
-                            <TableHead>Date</TableHead>
-                            <TableHead className="text-right">Actions</TableHead>
-                        </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                        {contentList.length === 0 ? (
-                            <TableRow>
-                                <TableCell colSpan={6} className="text-center h-24 text-muted-foreground">
-                                    No content found. Upload your first resource.
-                                </TableCell>
-                            </TableRow>
-                        ) : (
-                            contentList.map((item) => (
-                                <TableRow key={item.id}>
-                                    <TableCell className="font-medium">
-                                        <div className="flex items-center gap-2">
-                                            {item.format === "video" ? <Video className="h-4 w-4 text-blue-500" /> :
-                                                item.format === "image" ? <ImageIcon className="h-4 w-4 text-purple-500" /> :
-                                                    <FileText className="h-4 w-4 text-orange-500" />}
-                                            {item.title}
-                                        </div>
-                                    </TableCell>
-                                    <TableCell>
-                                        <Badge variant="outline" className="capitalize">{item.format}</Badge>
-                                    </TableCell>
-                                    <TableCell className="capitalize">{item.category}</TableCell>
-                                    <TableCell className="uppercase">{item.language}</TableCell>
-                                    <TableCell className="text-muted-foreground">
-                                        {new Date(item.createdAt).toLocaleDateString()}
-                                    </TableCell>
-                                    <TableCell className="text-right">
-                                        <Button variant="ghost" size="sm" asChild>
-                                            <a href={item.url} target="_blank" rel="noopener noreferrer">View</a>
-                                        </Button>
-                                    </TableCell>
-                                </TableRow>
-                            ))
-                        )}
-                    </TableBody>
-                </Table>
-            </div>
+            <Tabs defaultValue="vocational" className="w-full">
+                <TabsList>
+                    <TabsTrigger value="vocational">Vocational Courses</TabsTrigger>
+                    <TabsTrigger value="library">Resource Library</TabsTrigger>
+                </TabsList>
+                <TabsContent value="vocational" className="mt-4">
+                    <MasterContentTable data={vocationalCourses} />
+                </TabsContent>
+                <TabsContent value="library" className="mt-4">
+                    <MasterContentTable data={resourceLibrary} />
+                </TabsContent>
+            </Tabs>
         </div>
     );
 }

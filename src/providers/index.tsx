@@ -7,7 +7,7 @@ export default function Providers({ children }: { children: React.ReactNode }) {
   return (
     <LanguageProvider>
       {children}
-      <Toaster position="top-center" />
+      <Toaster position="top-center" richColors closeButton />
     </LanguageProvider>
   );
 }

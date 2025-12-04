@@ -29,6 +29,13 @@
       "when": 1764743493002,
       "tag": "0003_awesome_giant_man",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1764831904110,
+      "tag": "0004_light_vivisector",
+      "breakpoints": true
     }
   ]
 }

@@ -25,20 +25,23 @@ export default async function AdminLayout({
     };
 
     return (
-        <div className="flex h-screen w-full overflow-hidden">
-            {/* Desktop Sidebar */}
+        <div className="flex h-screen w-full overflow-hidden bg-background">
+            {/* Desktop Sidebar - Fixed */}
             <Sidebar role={role} user={user} />
 
-            <div className="flex flex-col flex-1 overflow-hidden">
+            {/* Main Content Area - with left margin for sidebar */}
+            <div className="flex flex-col flex-1 lg:ml-64">
                 {/* Mobile Header */}
-                <header className="flex h-14 items-center gap-4 border-b bg-gray-100/40 px-6 lg:hidden dark:bg-gray-800/40">
+                <header className="sticky top-0 z-30 flex h-14 items-center gap-4 border-b bg-background px-6 lg:hidden">
                     <MobileSidebar role={role} user={user} />
                     <div className="font-semibold">Imara Admin</div>
                 </header>
 
                 {/* Main Content */}
-                <main className="flex-1 overflow-auto p-8">
-                    {children}
+                <main className="flex-1 overflow-y-auto">
+                    <div className="container mx-auto p-6 md:p-8">
+                        {children}
+                    </div>
                 </main>
             </div>
         </div>

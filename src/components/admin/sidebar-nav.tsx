@@ -13,9 +13,10 @@ import {
 
 interface SidebarNavProps extends React.HTMLAttributes<HTMLElement> {
     role: string;
+    onLinkClick?: () => void;
 }
 
-export function SidebarNav({ className, role, ...props }: SidebarNavProps) {
+export function SidebarNav({ className, role, onLinkClick, ...props }: SidebarNavProps) {
     const pathname = usePathname();
 
     const routes = [
@@ -60,13 +61,14 @@ export function SidebarNav({ className, role, ...props }: SidebarNavProps) {
 
     return (
         <nav
-            className={cn("flex space-x-2 lg:flex-col lg:space-x-0 lg:space-y-1", className)}
+            className={cn("flex flex-col space-y-1", className)}
             {...props}
         >
             {filteredRoutes.map((route) => (
                 <Link
                     key={route.href}
                     href={route.href}
+                    onClick={onLinkClick}
                     className={cn(
                         "justify-start text-sm font-medium transition-colors hover:text-primary flex items-center gap-2 px-3 py-2 rounded-md",
                         route.active

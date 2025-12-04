@@ -33,23 +33,30 @@ export const metadata: Metadata = {
   manifest: "/favicons/site.webmanifest",
 };
 
-export default function RootLayout({
+import { headers } from "next/headers";
+
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const headersList = await headers();
+  const pathname = headersList.get("x-pathname") || "";
+  const isAdminRoute = pathname.startsWith("/admin");
+  console.log("RootLayout - Pathname:", pathname, "IsAdmin:", isAdminRoute);
+
   return (
     <html lang="en">
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
         <Providers>
-          <Navbar />
-          <main className="min-h-screen pb-16 md:pb-0">
+          {!isAdminRoute && <Navbar />}
+          <main className={isAdminRoute ? "" : "min-h-screen pb-16 md:pb-0"}>
             {children}
           </main>
-          <BottomNav />
-          <Footer />
+          {!isAdminRoute && <BottomNav />}
+          {!isAdminRoute && <Footer />}
         </Providers>
       </body>
     </html>
