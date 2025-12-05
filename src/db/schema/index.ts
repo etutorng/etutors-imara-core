@@ -6,3 +6,4 @@ export * from "./legal";
 export * from "./lms";
 export * from "./mentorship";
 export * from "./resources";
+export * from "./settings";
