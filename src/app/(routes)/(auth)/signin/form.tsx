@@ -63,7 +63,9 @@ export default function SignInForm() {
 
       if (response.error) {
         console.log("SIGN_IN:", response.error.message);
-        toast.error(response.error.message);
+        toast.error(
+          response.error.message || t("auth.signin.error") || "Invalid email or password"
+        );
       } else {
         // Fetch session to check role
         const sessionRes = await fetch("/api/auth/get-session");
