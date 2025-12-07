@@ -9,6 +9,8 @@ export const courses = pgTable("courses", {
     category: text("category").notNull(), // Fashion, Digital Literacy, etc.
     language: text("language").default("en").notNull(),
     thumbnailUrl: text("thumbnail_url"),
+    groupId: uuid("group_id").defaultRandom().notNull(), // Groups translations together
+    isMaster: boolean("is_master").default(false).notNull(), // Identifies the primary entry
     createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 

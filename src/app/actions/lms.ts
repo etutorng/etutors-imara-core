@@ -1,106 +1,89 @@
 "use server";
 
 import { db } from "@/db";
-import { badges, courses, progress, userBadges } from "@/db/schema";
+import { courses, modules } from "@/db/schema/lms";
 import { auth } from "@/lib/auth/server";
-import { and, eq } from "drizzle-orm";
+import { eq, sql } from "drizzle-orm";
 import { headers } from "next/headers";
+import { revalidatePath } from "next/cache";
+import { z } from "zod";
 
-export async function getCourses() {
-    const allCourses = await db.query.courses.findMany({
-        with: {
-            modules: {
-                orderBy: (modules, { asc }) => [asc(modules.order)],
-            },
-        },
-    });
-    return allCourses;
-}
+const createCourseSchema = z.object({
+    title: z.string().min(1),
+    description: z.string().min(1),
+    category: z.string().min(1),
+    thumbnailUrl: z.string().url().optional().or(z.literal("")),
+    modules: z.array(z.object({
+        title: z.string().min(1),
+        videoUrl: z.string().url(),
+        duration: z.number().default(0),
+    })),
+});
 
-export async function getCourse(id: string) {
-    const course = await db.query.courses.findFirst({
-        where: eq(courses.id, id),
-        with: {
-            modules: {
-                orderBy: (modules, { asc }) => [asc(modules.order)],
-            },
-        },
-    });
-    return course;
-}
-
-export async function getAlternateCourse(category: string, currentLanguage: string) {
-    const targetLanguage = currentLanguage === "en" ? "ha" : "en";
-    const course = await db.query.courses.findFirst({
-        where: and(
-            eq(courses.category, category),
-            eq(courses.language, targetLanguage)
-        ),
-    });
-    return course;
-}
-
-export async function updateProgress(moduleId: string) {
+export async function createCourse(data: z.infer<typeof createCourseSchema>) {
     const session = await auth.api.getSession({
         headers: await headers(),
     });
 
-    if (!session) {
+    if (!session || (session.user as any).role !== "SUPER_ADMIN") {
         return { error: "Unauthorized" };
     }
 
-    const userId = session.user.id;
+    try {
+        await db.transaction(async (tx) => {
+            const [course] = await tx.insert(courses).values({
+                title: data.title,
+                description: data.description,
+                category: data.category,
+                thumbnailUrl: data.thumbnailUrl || null,
+                language: "en",
+                isMaster: true,
+            }).returning();
 
-    // Check if already completed
-    const existingProgress = await db.query.progress.findFirst({
-        where: and(eq(progress.userId, userId), eq(progress.moduleId, moduleId)),
-    });
-
-    if (existingProgress?.completed) {
-        return { success: true };
-    }
-
-    await db.insert(progress).values({
-        userId,
-        moduleId,
-        completed: true,
-    }).onConflictDoUpdate({
-        target: [progress.userId, progress.moduleId],
-        set: { completed: true },
-    });
-
-    // Check for badges (Simple logic: Complete 1 module = "First Step" badge)
-    // In a real app, this would be more complex.
-    const completedCount = await db.$count(progress, eq(progress.userId, userId));
-
-    if (completedCount === 1) {
-        const firstStepBadge = await db.query.badges.findFirst({
-            where: eq(badges.name, "First Step"),
+            if (data.modules.length > 0) {
+                await tx.insert(modules).values(
+                    data.modules.map((mod, index) => ({
+                        courseId: course.id,
+                        title: mod.title,
+                        videoUrl: mod.videoUrl,
+                        duration: mod.duration,
+                        order: index + 1,
+                    }))
+                );
+            }
         });
 
-        if (firstStepBadge) {
-            await db.insert(userBadges).values({
-                userId,
-                badgeId: firstStepBadge.id,
-            }).onConflictDoNothing();
-        }
+        revalidatePath("/admin/content");
+        return { success: true };
+    } catch (error) {
+        console.error("Failed to create course:", error);
+        return { error: "Failed to create course" };
     }
-
-    return { success: true };
 }
 
-export async function getUserProgress() {
+export async function getVocationalCourses() {
     const session = await auth.api.getSession({
         headers: await headers(),
     });
 
-    if (!session) {
+    if (!session || (session.user as any).role !== "SUPER_ADMIN") {
         return [];
     }
 
-    const userProgress = await db.query.progress.findMany({
-        where: eq(progress.userId, session.user.id),
+    // Fetch master courses with module count
+    // Drizzle doesn't support count aggregation in query builder easily with relations yet in a single simple call without raw sql or separate queries usually.
+    // But we can use `db.query` and map.
+
+    const masterCourses = await db.query.courses.findMany({
+        where: eq(courses.isMaster, true),
+        with: {
+            modules: true,
+        },
+        orderBy: (courses, { desc }) => [desc(courses.createdAt)],
     });
 
-    return userProgress;
+    return masterCourses.map(course => ({
+        ...course,
+        moduleCount: course.modules.length,
+    }));
 }

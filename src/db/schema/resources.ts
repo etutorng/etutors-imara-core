@@ -8,6 +8,7 @@ export const resources = pgTable("resources", {
     thumbnail: text("thumbnail"), // For master view
     category: text("category").notNull(),
     format: text("format").default("article").notNull(),
+    content: text("content"), // For Article type content
     description: text("description"),
     language: text("language").default("en").notNull(),
     isMaster: boolean("is_master").default(false).notNull(), // Identifies the primary entry
