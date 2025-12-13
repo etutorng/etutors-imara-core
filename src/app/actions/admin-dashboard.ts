@@ -5,8 +5,9 @@ import { user } from "@/db/schema/auth/user";
 import { tickets } from "@/db/schema/legal";
 import { courses, modules } from "@/db/schema/lms";
 import { resources } from "@/db/schema/resources";
+import { counsellingSessions } from "@/db/schema/counselling";
 import { auth } from "@/lib/auth/server";
-import { count, eq, sql, desc, and, not } from "drizzle-orm";
+import { count, eq, sql, desc, and, not, or } from "drizzle-orm";
 import { headers } from "next/headers";
 
 export async function getAdminDashboardStats() {
@@ -97,36 +98,76 @@ export async function getAdminDashboardStats() {
 }
 
 export async function getRecentSystemActivity() {
-    // Fetch recent users and tickets to mix into an activity feed
-    const recentUsers = await db.query.user.findMany({
-        limit: 5,
-        orderBy: [desc(user.createdAt)],
+    const session = await auth.api.getSession({
+        headers: await headers(),
     });
 
-    const recentTickets = await db.query.tickets.findMany({
-        limit: 5,
-        orderBy: [desc(tickets.createdAt)],
-    });
+    if (!session || !session.user) {
+        return [];
+    }
 
-    // Merge and format
-    const activities = [
-        ...recentUsers.map(u => ({
+    const role = (session.user as any).role;
+    let activities: any[] = [];
+
+    // SUPER_ADMIN sees everything (Users + Tickets + Counselling Requests)
+    // COUNSELLOR sees Counselling Requests + Their Sessions
+    // LEGAL_PARTNER sees Legal Tickets
+    // CONTENT_EDITOR sees Content updates (or just generic for now)
+
+    if (role === "SUPER_ADMIN" || role === "COUNSELLOR") {
+        // Fetch recent Counselling Requests
+        const recentSessions = await db.query.counsellingSessions.findMany({
+            limit: 5,
+            orderBy: [desc(counsellingSessions.createdAt)],
+            with: { user: true }
+        });
+
+        activities.push(...recentSessions.map(s => ({
+            user: s.user.name,
+            action: s.status === "PENDING" ? "requested counselling" : `counselling session ${s.status.toLowerCase()}`,
+            date: s.createdAt,
+            type: "counselling",
+            roleAccess: ["SUPER_ADMIN", "COUNSELLOR"]
+        })));
+    }
+
+    if (role === "SUPER_ADMIN" || role === "LEGAL_PARTNER") {
+        // Fetch tickets
+        const recentTickets = await db.query.tickets.findMany({
+            limit: 5,
+            orderBy: [desc(tickets.createdAt)],
+        });
+        activities.push(...recentTickets.map(t => ({
+            user: "User",
+            action: `submitted legal ticket: ${t.category}`,
+            date: t.createdAt,
+            type: "ticket",
+            roleAccess: ["SUPER_ADMIN", "LEGAL_PARTNER"]
+        })));
+    }
+
+    if (role === "SUPER_ADMIN") {
+        const recentUsers = await db.query.user.findMany({
+            limit: 5,
+            orderBy: [desc(user.createdAt)],
+        });
+        activities.push(...recentUsers.map(u => ({
             user: u.name,
             action: "registered an account",
             date: u.createdAt,
-            type: "user"
-        })),
-        ...recentTickets.map(t => ({
-            user: "User", // We'd need to fetch the user name if we want it, or just say "A user"
-            action: `submitted legal ticket: ${t.category}`,
-            date: t.createdAt,
-            type: "ticket"
-        }))
-    ].sort((a, b) => {
-        const dateA = a.date ? new Date(a.date).getTime() : 0;
-        const dateB = b.date ? new Date(b.date).getTime() : 0;
-        return dateB - dateA;
-    }).slice(0, 5);
+            type: "user",
+            roleAccess: ["SUPER_ADMIN"]
+        })));
+    }
 
-    return activities;
+    // Filter final list just in case (though we fetched based on role)
+    // And Sort
+    return activities
+        .filter(a => a.roleAccess.includes(role)) // Double check
+        .sort((a, b) => {
+            const dateA = a.date ? new Date(a.date).getTime() : 0;
+            const dateB = b.date ? new Date(b.date).getTime() : 0;
+            return dateB - dateA;
+        })
+        .slice(0, 5);
 }

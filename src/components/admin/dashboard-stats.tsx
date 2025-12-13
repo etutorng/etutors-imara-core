@@ -1,7 +1,7 @@
 "use client";
 
 import { StatCard } from "@/components/ui/stat-card";
-import { Users, FileText, Scale, Video, AlertCircle, CheckCircle, Eye, Globe } from "lucide-react";
+import { Users, FileText, Scale, Video, AlertCircle, CheckCircle, Eye, Globe, MessageCircle } from "lucide-react";
 
 interface DashboardStatsProps {
     role: string;
@@ -102,6 +102,33 @@ export function DashboardStats({ role, stats }: DashboardStatsProps) {
                     value={stats.resolvedCases.toString()}
                     icon={CheckCircle}
                     description="Total cases closed"
+                />
+            </div>
+        );
+    }
+
+    if (role === "COUNSELLOR") {
+        return (
+            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                <StatCard
+                    title="Pending Requests"
+                    value={stats.pendingRequests.toString()}
+                    icon={AlertCircle}
+                    description="Waiting coverage"
+                    variant="accent"
+                />
+                <StatCard
+                    title="My Active Sessions"
+                    value={stats.myActiveCases.toString()}
+                    icon={MessageCircle}
+                    description="Ongoing conversations"
+                    variant="primary"
+                />
+                <StatCard
+                    title="Completed Sessions"
+                    value={stats.resolvedCases.toString()}
+                    icon={CheckCircle}
+                    description="Total sessions closed"
                 />
             </div>
         );
