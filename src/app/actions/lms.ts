@@ -86,4 +86,52 @@ export async function getVocationalCourses() {
         ...course,
         moduleCount: course.modules.length,
     }));
+    // ... existing code ...
+    return masterCourses.map(course => ({
+        ...course,
+        moduleCount: course.modules.length,
+    }));
+}
+
+export async function getCourses() {
+    // Public fetch for all master courses
+    const allCourses = await db.query.courses.findMany({
+        where: eq(courses.isMaster, true),
+        with: {
+            modules: {
+                orderBy: (modules, { asc }) => [asc(modules.order)],
+            },
+        },
+        orderBy: (courses, { desc }) => [desc(courses.createdAt)],
+    });
+
+    return allCourses.map(course => ({
+        ...course,
+        moduleCount: course.modules.length,
+    }));
+}
+
+export async function getCourse(id: string) {
+    const course = await db.query.courses.findFirst({
+        where: eq(courses.id, id),
+        with: {
+            modules: {
+                orderBy: (modules, { asc }) => [asc(modules.order)],
+            },
+        },
+    });
+    return course;
+}
+
+export async function getAlternateCourse(groupId: string, currentLanguage: string) {
+    // Find a course with the same groupId but different language
+    // Prefer user's likely alternate (e.g. if en, try ha/local? or just any other)
+    // For now, just find ANY other one.
+    const alt = await db.query.courses.findFirst({
+        where: (courses, { and, eq, ne }) => and(
+            eq(courses.groupId, groupId),
+            ne(courses.language, currentLanguage)
+        ),
+    });
+    return alt;
 }

@@ -19,6 +19,7 @@ type Course = {
     category: string;
     language: string;
     thumbnailUrl: string | null;
+    groupId: string;
     modules: any[];
 };
 
@@ -36,7 +37,7 @@ export default function PublicCoursePage() {
                 const data = await getCourse(courseId);
                 setCourse(data);
                 if (data) {
-                    const alt = await getAlternateCourse(data.category, data.language);
+                    const alt = await getAlternateCourse(data.groupId, data.language);
                     setAlternateCourseId(alt?.id);
                 }
             } catch (error) {
