@@ -1,7 +1,7 @@
 "use server";
 
 import { db } from "@/db";
-import { mentors, messages } from "@/db/schema";
+import { mentors, messages, user } from "@/db/schema";
 import { auth } from "@/lib/auth/server";
 import { and, eq, or } from "drizzle-orm";
 import { headers } from "next/headers";
@@ -50,15 +50,22 @@ export async function getMessages(otherUserId: string) {
 }
 
 export async function getMentors() {
-    const allMentors = await db.query.mentors.findMany({
+    const counsellors = await db.query.user.findMany({
+        where: eq(user.role, "COUNSELLOR"),
         columns: {
             id: true,
             name: true,
-            imageUrl: true,
-            expertise: true,
-            bio: true,
-            verified: true,
+            image: true,
         },
     });
-    return allMentors;
+
+    // Map to Mentor type expected by UI
+    return counsellors.map(c => ({
+        id: c.id,
+        name: c.name,
+        imageUrl: c.image,
+        expertise: "Counseling", // Default for now, as User schema doesn't have expertise
+        bio: "Verified Counsellor on Imara", // Default bio
+        verified: true,
+    }));
 }

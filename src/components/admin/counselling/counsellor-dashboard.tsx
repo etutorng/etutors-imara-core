@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { assignCounsellor } from "@/app/actions/counselling";
-import { ActiveSession } from "@/components/counselling/active-session";
+import { CounsellingChat } from "@/components/counselling/counselling-chat";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -145,7 +145,7 @@ export function CounsellorDashboard({ queue, currentUser }: CounsellorDashboardP
                             </Button>
                         </Card>
                     ) : (
-                        <ActiveSession session={selectedSession} currentUser={currentUser} />
+                        <CounsellingChat session={selectedSession} currentUser={currentUser} />
                     )
                 ) : (
                     <Card className="h-full flex flex-col justify-center items-center text-center text-muted-foreground p-8">

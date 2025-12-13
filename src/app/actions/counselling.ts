@@ -12,7 +12,7 @@ import { eq, and, or, desc, asc } from "drizzle-orm";
 import { headers } from "next/headers";
 import { revalidatePath } from "next/cache";
 
-export async function requestCounselling() {
+export async function requestCounselling(counsellorId?: string) {
     const session = await auth.api.getSession({
         headers: await headers(),
     });
@@ -23,17 +23,38 @@ export async function requestCounselling() {
 
     try {
         // Check for existing active/pending session
-        const existingSession = await db.query.counsellingSessions.findFirst({
-            where: and(
+        // If counsellorId is provided, check for session with THAT counsellor
+        // If no counsellorId (generic request), check for any general pending request? 
+        // For now, let's assume we always want to avoid duplicates.
+
+        let whereClause;
+        if (counsellorId) {
+            whereClause = and(
+                eq(counsellingSessions.userId, session.user.id),
+                eq(counsellingSessions.counsellorId, counsellorId),
+                or(
+                    eq(counsellingSessions.status, "PENDING"),
+                    eq(counsellingSessions.status, "ACTIVE")
+                )
+            );
+        } else {
+            // Generic legacy check
+            whereClause = and(
                 eq(counsellingSessions.userId, session.user.id),
                 or(
                     eq(counsellingSessions.status, "PENDING"),
                     eq(counsellingSessions.status, "ACTIVE")
                 )
-            )
+            );
+        }
+
+        const existingSession = await db.query.counsellingSessions.findFirst({
+            where: whereClause
         });
 
         if (existingSession) {
+            // If requesting specific, just return success so UI opens it
+            if (counsellorId) return { success: true, session: existingSession };
             return { error: "You already have an active or pending counselling request." };
         }
 
@@ -41,6 +62,7 @@ export async function requestCounselling() {
             .values({
                 userId: session.user.id,
                 status: "PENDING",
+                counsellorId: counsellorId || undefined, // Assign directly if targeted
             })
             .returning();
 
@@ -81,6 +103,40 @@ export async function getUserSession() {
         return { session: counsellingSession };
     } catch (error) {
         console.error("Failed to get session:", error);
+        return { error: "Failed to retrieve session." };
+    }
+}
+
+export async function getMentorSession(counsellorId: string) {
+    const session = await auth.api.getSession({
+        headers: await headers(),
+    });
+
+    if (!session || !session.user) {
+        return { error: "Unauthorized" };
+    }
+
+    try {
+        const counsellingSession = await db.query.counsellingSessions.findFirst({
+            where: and(
+                eq(counsellingSessions.userId, session.user.id),
+                eq(counsellingSessions.counsellorId, counsellorId),
+                or(
+                    eq(counsellingSessions.status, "PENDING"),
+                    eq(counsellingSessions.status, "ACTIVE")
+                )
+            ),
+            with: {
+                counsellor: true,
+                messages: {
+                    orderBy: asc(counsellingMessages.createdAt)
+                }
+            }
+        });
+
+        return { session: counsellingSession };
+    } catch (error) {
+        console.error("Failed to get mentor session:", error);
         return { error: "Failed to retrieve session." };
     }
 }
