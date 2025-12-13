@@ -1,0 +1,216 @@
+"use server";
+
+import { db } from "@/db";
+import {
+    counsellingSessions,
+    counsellingMessages,
+    counsellingStatusEnum
+} from "@/db/schema/counselling";
+import { user } from "@/db/schema/auth/user";
+import { auth } from "@/lib/auth/server";
+import { eq, and, or, desc, asc } from "drizzle-orm";
+import { headers } from "next/headers";
+import { revalidatePath } from "next/cache";
+
+export async function requestCounselling() {
+    const session = await auth.api.getSession({
+        headers: await headers(),
+    });
+
+    if (!session || !session.user) {
+        return { error: "Unauthorized" };
+    }
+
+    try {
+        // Check for existing active/pending session
+        const existingSession = await db.query.counsellingSessions.findFirst({
+            where: and(
+                eq(counsellingSessions.userId, session.user.id),
+                or(
+                    eq(counsellingSessions.status, "PENDING"),
+                    eq(counsellingSessions.status, "ACTIVE")
+                )
+            )
+        });
+
+        if (existingSession) {
+            return { error: "You already have an active or pending counselling request." };
+        }
+
+        const [newSession] = await db.insert(counsellingSessions)
+            .values({
+                userId: session.user.id,
+                status: "PENDING",
+            })
+            .returning();
+
+        revalidatePath("/dashboard/counselling");
+        return { success: true, session: newSession };
+    } catch (error) {
+        console.error("Failed to request counselling:", error);
+        return { error: "Failed to request counselling." };
+    }
+}
+
+export async function getUserSession() {
+    const session = await auth.api.getSession({
+        headers: await headers(),
+    });
+
+    if (!session || !session.user) {
+        return { error: "Unauthorized" };
+    }
+
+    try {
+        const counsellingSession = await db.query.counsellingSessions.findFirst({
+            where: and(
+                eq(counsellingSessions.userId, session.user.id),
+                or(
+                    eq(counsellingSessions.status, "PENDING"),
+                    eq(counsellingSessions.status, "ACTIVE")
+                )
+            ),
+            with: {
+                counsellor: true,
+                messages: {
+                    orderBy: asc(counsellingMessages.createdAt)
+                }
+            }
+        });
+
+        return { session: counsellingSession };
+    } catch (error) {
+        console.error("Failed to get session:", error);
+        return { error: "Failed to retrieve session." };
+    }
+}
+
+export async function sendMessage(sessionId: string, content: string) {
+    const session = await auth.api.getSession({
+        headers: await headers(),
+    });
+
+    if (!session || !session.user) {
+        return { error: "Unauthorized" };
+    }
+
+    try {
+        // Verify user is part of session (either user or counsellor)
+        const counsellingSession = await db.query.counsellingSessions.findFirst({
+            where: eq(counsellingSessions.id, sessionId),
+        });
+
+        if (!counsellingSession) {
+            return { error: "Session not found" };
+        }
+
+        const isParticipant =
+            counsellingSession.userId === session.user.id ||
+            counsellingSession.counsellorId === session.user.id;
+
+        if (!isParticipant) {
+            return { error: "Unauthorized" };
+        }
+
+        await db.insert(counsellingMessages).values({
+            sessionId: sessionId,
+            senderId: session.user.id,
+            content: content,
+        });
+
+        revalidatePath("/dashboard/counselling");
+        revalidatePath("/admin/counselling");
+        return { success: true };
+    } catch (error) {
+        console.error("Failed to send message:", error);
+        return { error: "Failed to send message." };
+    }
+}
+
+// Admin / Counsellor Actions
+
+export async function getCounsellingQueue() {
+    const session = await auth.api.getSession({
+        headers: await headers(),
+    });
+
+    if (!session || (session.user as any).role === "USER") {
+        // Allow SUPER_ADMIN, COUNSELLOR, etc. but strictly not plain USER
+        return { error: "Unauthorized" };
+    }
+
+    try {
+        const pendingSessions = await db.query.counsellingSessions.findMany({
+            where: eq(counsellingSessions.status, "PENDING"),
+            with: {
+                user: true
+            },
+            orderBy: desc(counsellingSessions.createdAt)
+        });
+
+        // Also fetch active sessions for this counsellor
+        const myActiveSessions = await db.query.counsellingSessions.findMany({
+            where: and(
+                eq(counsellingSessions.status, "ACTIVE"),
+                eq(counsellingSessions.counsellorId, session.user.id)
+            ),
+            with: {
+                user: true
+            },
+            orderBy: desc(counsellingSessions.updatedAt)
+        });
+
+        return { pending: pendingSessions, active: myActiveSessions };
+    } catch (error) {
+        console.error("Failed to get queue:", error);
+        return { error: "Failed to fetch queue." };
+    }
+}
+
+export async function assignCounsellor(sessionId: string) {
+    const session = await auth.api.getSession({
+        headers: await headers(),
+    });
+
+    if (!session || (session.user as any).role === "USER") {
+        return { error: "Unauthorized" };
+    }
+
+    try {
+        await db.update(counsellingSessions)
+            .set({
+                counsellorId: session.user.id,
+                status: "ACTIVE",
+                updatedAt: new Date(),
+            })
+            .where(eq(counsellingSessions.id, sessionId));
+
+        revalidatePath("/admin/counselling");
+        return { success: true };
+    } catch (error) {
+        console.error("Failed to assign counsellor:", error);
+        return { error: "Failed to assign session." };
+    }
+}
+
+export async function getSessionMessages(sessionId: string) {
+    const session = await auth.api.getSession({
+        headers: await headers(),
+    });
+    if (!session || (session.user as any).role === "USER") {
+        return { error: "Unauthorized" };
+    }
+
+    try {
+        const messages = await db.query.counsellingMessages.findMany({
+            where: eq(counsellingMessages.sessionId, sessionId),
+            orderBy: asc(counsellingMessages.createdAt),
+            with: {
+                sender: true
+            }
+        });
+        return { messages };
+    } catch (error) {
+        return { error: "Failed to fetch messages" };
+    }
+}

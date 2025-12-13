@@ -1,120 +1,62 @@
-"use client";
-
-import { getMentors } from "@/app/actions/mentorship";
+import { auth } from "@/lib/auth/server";
+import { headers } from "next/headers";
+import { getUserSession, requestCounselling } from "@/app/actions/counselling";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Badge } from "@/components/ui/badge";
-import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
-import { ChatShell } from "@/components/chat-shell";
-import { useLanguage } from "@/lib/i18n/language-context";
-import { useEffect, useState } from "react";
-import { MessageCircle, ShieldCheck } from "lucide-react";
+import { Card, CardDescription, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
+import { ActiveSession } from "@/components/counselling/active-session";
+import { MessageCircle, HeartHandshake } from "lucide-react";
+import { redirect } from "next/navigation";
+import { revalidatePath } from "next/cache";
 
-type Mentor = {
-    id: string;
-    name: string;
-    imageUrl: string | null;
-    expertise: string;
-    bio: string;
-    verified: boolean;
-};
+export default async function CounsellingPage() {
+    const session = await auth.api.getSession({
+        headers: await headers(),
+    });
 
-export default function DashboardCounsellingPage() {
-    const { t } = useLanguage();
-    const [mentors, setMentors] = useState<Mentor[]>([]);
-    const [loading, setLoading] = useState(true);
-    const [selectedMentor, setSelectedMentor] = useState<Mentor | null>(null);
+    if (!session) {
+        redirect("/signin");
+    }
 
-    useEffect(() => {
-        async function loadMentors() {
-            try {
-                const data = await getMentors();
-                setMentors(data);
-            } catch (error) {
-                console.error("Failed to load mentors:", error);
-            } finally {
-                setLoading(false);
-            }
-        }
-        loadMentors();
-    }, []);
+    const { session: counsellingSession } = await getUserSession();
 
-    if (loading) {
-        return (
-            <div className="container mx-auto p-4 space-y-6">
-                <div className="flex flex-col space-y-2">
-                    <h1 className="text-3xl font-bold tracking-tight">{t("mentorship.title")}</h1>
-                    <p className="text-muted-foreground">{t("mentorship.description")}</p>
-                </div>
-                <div className="text-center py-12 text-muted-foreground">
-                    {t("common.loading")}
-                </div>
-            </div>
-        );
+    async function handleRequest() {
+        "use server";
+        await requestCounselling();
+        // Page triggers re-render via revalidate in action
     }
 
     return (
         <div className="container mx-auto p-4 space-y-6">
             <div className="flex flex-col space-y-2">
-                <h1 className="text-3xl font-bold tracking-tight">{t("mentorship.title")}</h1>
+                <h1 className="text-3xl font-bold tracking-tight">Counselling Support</h1>
                 <p className="text-muted-foreground">
-                    {t("mentorship.description")}
+                    Connect with a verified counsellor for confidential support and guidance.
                 </p>
             </div>
 
-            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-                {mentors.map((mentor) => (
-                    <Card key={mentor.id} className="flex flex-col">
-                        <CardHeader className="flex flex-row items-center gap-4">
-                            <Avatar className="h-12 w-12">
-                                <AvatarImage src={mentor.imageUrl || undefined} />
-                                <AvatarFallback>{mentor.name[0]}</AvatarFallback>
-                            </Avatar>
-                            <div className="flex flex-col">
-                                <CardTitle className="text-lg flex items-center gap-2">
-                                    {mentor.name}
-                                    {mentor.verified && (
-                                        <ShieldCheck className="h-4 w-4 text-primary" />
-                                    )}
-                                </CardTitle>
-                                <Badge variant="secondary" className="w-fit">
-                                    {mentor.expertise}
-                                </Badge>
-                            </div>
-                        </CardHeader>
-                        <CardContent className="flex-1">
-                            <CardDescription className="line-clamp-3">
-                                {mentor.bio}
-                            </CardDescription>
-                        </CardContent>
-                        <CardFooter>
-                            <Dialog>
-                                <DialogTrigger asChild>
-                                    <Button className="w-full" onClick={() => setSelectedMentor(mentor)}>
-                                        <MessageCircle className="mr-2 h-4 w-4" />
-                                        {t("mentorship.requestMentorship")}
-                                    </Button>
-                                </DialogTrigger>
-                                <DialogContent className="sm:max-w-md p-0 border-0 bg-transparent shadow-none">
-                                    {selectedMentor && (
-                                        <ChatShell
-                                            mentorName={selectedMentor.name}
-                                            mentorImage={selectedMentor.imageUrl}
-                                            onClose={() => setSelectedMentor(null)}
-                                        />
-                                    )}
-                                </DialogContent>
-                            </Dialog>
-                        </CardFooter>
-                    </Card>
-                ))}
-                {mentors.length === 0 && (
-                    <div className="col-span-full text-center py-12 text-muted-foreground">
-                        {t("mentorship.noMentors")}
-                    </div>
-                )}
-            </div>
+            {counsellingSession ? (
+                <ActiveSession session={counsellingSession} currentUser={session.user} />
+            ) : (
+                <Card className="max-w-2xl mx-auto mt-12 text-center">
+                    <CardHeader>
+                        <div className="mx-auto bg-primary/10 p-4 rounded-full w-fit mb-4">
+                            <HeartHandshake className="h-12 w-12 text-primary" />
+                        </div>
+                        <CardTitle className="text-2xl">Need someone to talk to?</CardTitle>
+                        <CardDescription className="text-lg mt-2">
+                            Our counsellors are here to listen and support you. Start a private session now.
+                        </CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                        <form action={handleRequest}>
+                            <Button size="lg" className="w-full sm:w-auto">
+                                <MessageCircle className="mr-2 h-5 w-5" />
+                                Request Counselling Session
+                            </Button>
+                        </form>
+                    </CardContent>
+                </Card>
+            )}
         </div>
     );
 }

@@ -9,6 +9,7 @@ import {
     FileText,
     Scale,
     Settings,
+    MessageCircle,
 } from "lucide-react";
 
 interface SidebarNavProps extends React.HTMLAttributes<HTMLElement> {
@@ -54,6 +55,13 @@ export function SidebarNav({ className, role, onLinkClick, ...props }: SidebarNa
             icon: Settings,
             active: pathname === "/admin/settings",
             roles: ["SUPER_ADMIN"],
+        },
+        {
+            href: "/admin/counselling",
+            label: "Counselling",
+            icon: MessageCircle,
+            active: pathname === "/admin/counselling",
+            roles: ["SUPER_ADMIN", "COUNSELLOR"],
         },
     ];
 

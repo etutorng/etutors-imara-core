@@ -8,3 +8,5 @@ export * from "./lms";
 export * from "./mentorship";
 export * from "./resources";
 export * from "./settings";
+export * from "./counselling";
+export * from "./counselling_relations";
