@@ -5,15 +5,25 @@ import { Users, FileText, Scale, Video, AlertCircle, CheckCircle, Eye, Globe } f
 
 interface DashboardStatsProps {
     role: string;
+    stats: {
+        totalUsers: number;
+        activeCases: number;
+        totalCourses: number;
+        pendingApprovals: number;
+        missingTranslations: number;
+        myActiveCases: number;
+        pendingRequests: number;
+        resolvedCases: number;
+    };
 }
 
-export function DashboardStats({ role }: DashboardStatsProps) {
+export function DashboardStats({ role, stats }: DashboardStatsProps) {
     if (role === "SUPER_ADMIN") {
         return (
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
                 <StatCard
                     title="Total Users"
-                    value="1,234"
+                    value={stats.totalUsers.toString()}
                     icon={Users}
                     description="Active users on the platform"
                     trend={{ value: 12, label: "from last month", positive: true }}
@@ -21,22 +31,22 @@ export function DashboardStats({ role }: DashboardStatsProps) {
                 />
                 <StatCard
                     title="Active Legal Cases"
-                    value="24"
+                    value={stats.activeCases.toString()}
                     icon={Scale}
                     description="Cases currently in progress"
                     variant="accent"
                 />
                 <StatCard
-                    title="Total Videos"
-                    value="156"
+                    title="Total Courses"
+                    value={stats.totalCourses.toString()}
                     icon={Video}
-                    description="Educational content uploaded"
+                    description="Master courses available"
                 />
                 <StatCard
-                    title="Pending Approvals"
-                    value="7"
+                    title="Pending Tickets"
+                    value={stats.pendingApprovals.toString()}
                     icon={AlertCircle}
-                    description="Content waiting for review"
+                    description="Waiting coverage/action"
                     variant="default"
                 />
             </div>
@@ -47,17 +57,17 @@ export function DashboardStats({ role }: DashboardStatsProps) {
         return (
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
                 <StatCard
-                    title="Total Courses Uploaded"
-                    value="45"
+                    title="Total Courses"
+                    value={stats.totalCourses.toString()}
                     icon={FileText}
-                    description="Courses you have created"
+                    description="Master courses available"
                     variant="primary"
                 />
                 <StatCard
-                    title="Missing Translations"
-                    value="12"
+                    title="Total Resources"
+                    value={stats.activeCases.toString()} // Reusing field
                     icon={Globe}
-                    description="Content needing translation"
+                    description="Resources in library"
                     variant="accent"
                 />
                 <StatCard
@@ -74,22 +84,22 @@ export function DashboardStats({ role }: DashboardStatsProps) {
         return (
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
                 <StatCard
-                    title="My Active Cases"
-                    value="8"
+                    title="Active Cases"
+                    value={stats.myActiveCases.toString()}
                     icon={Scale}
-                    description="Cases assigned to you"
+                    description="Total active cases"
                     variant="primary"
                 />
                 <StatCard
                     title="Pending Requests"
-                    value="3"
+                    value={stats.pendingRequests.toString()}
                     icon={AlertCircle}
                     description="New legal assistance requests"
                     variant="accent"
                 />
                 <StatCard
                     title="Resolved Cases"
-                    value="156"
+                    value={stats.resolvedCases.toString()}
                     icon={CheckCircle}
                     description="Total cases closed"
                 />

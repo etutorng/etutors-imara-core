@@ -5,6 +5,8 @@ import { DashboardStats } from "@/components/admin/dashboard-stats";
 import { ArrowUpRight, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
+import { getAdminDashboardStats, getRecentSystemActivity } from "@/app/actions/admin-dashboard";
+import { formatDistanceToNow } from "date-fns";
 
 export default async function AdminDashboardPage() {
     const session = await auth.api.getSession({
@@ -16,6 +18,20 @@ export default async function AdminDashboardPage() {
     }
 
     const role = (session.user as any).role;
+    const stats = await getAdminDashboardStats();
+    const recentActivity = await getRecentSystemActivity();
+
+    // Default stats if null
+    const safeStats = stats || {
+        totalUsers: 0,
+        activeCases: 0,
+        totalCourses: 0,
+        pendingApprovals: 0,
+        missingTranslations: 0,
+        myActiveCases: 0,
+        pendingRequests: 0,
+        resolvedCases: 0,
+    };
 
     return (
         <div className="space-y-8">
@@ -36,9 +52,9 @@ export default async function AdminDashboardPage() {
                 </div>
             </div>
 
-            <DashboardStats role={role} />
+            <DashboardStats role={role} stats={safeStats} />
 
-            {/* Recent Activity Section - Common for all admins but could be customized */}
+            {/* Recent Activity Section */}
             <div className="rounded-xl border bg-card text-card-foreground shadow">
                 <div className="p-6 flex flex-row items-center justify-between space-y-0 pb-2">
                     <h3 className="tracking-tight text-sm font-medium">Recent System Activity</h3>
@@ -48,23 +64,23 @@ export default async function AdminDashboardPage() {
                 </div>
                 <div className="p-6 pt-0">
                     <div className="space-y-4">
-                        {[
-                            { user: "System", action: "Daily backup completed", time: "1 hour ago" },
-                            { user: "New User", action: "registered an account", time: "3 hours ago" },
-                            { user: "Sarah J.", action: "submitted a new legal ticket", time: "5 hours ago" },
-                        ].map((item, i) => (
-                            <div key={i} className="flex items-center">
-                                <div className="ml-4 space-y-1">
-                                    <p className="text-sm font-medium leading-none">{item.user}</p>
-                                    <p className="text-sm text-muted-foreground">
-                                        {item.action}
-                                    </p>
+                        {recentActivity.length === 0 ? (
+                            <p className="text-sm text-muted-foreground">No recent activity.</p>
+                        ) : (
+                            recentActivity.map((item, i) => (
+                                <div key={i} className="flex items-center">
+                                    <div className="ml-4 space-y-1">
+                                        <p className="text-sm font-medium leading-none">{item.user}</p>
+                                        <p className="text-sm text-muted-foreground">
+                                            {item.action}
+                                        </p>
+                                    </div>
+                                    <div className="ml-auto font-medium text-xs text-muted-foreground">
+                                        {item.date ? formatDistanceToNow(new Date(item.date), { addSuffix: true }) : ""}
+                                    </div>
                                 </div>
-                                <div className="ml-auto font-medium text-xs text-muted-foreground">
-                                    {item.time}
-                                </div>
-                            </div>
-                        ))}
+                            ))
+                        )}
                     </div>
                 </div>
             </div>
