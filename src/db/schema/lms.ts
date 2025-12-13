@@ -59,3 +59,25 @@ export const modulesRelations = relations(modules, ({ one }) => ({
         references: [courses.id],
     }),
 }));
+
+export const progressRelations = relations(progress, ({ one }) => ({
+    module: one(modules, {
+        fields: [progress.moduleId],
+        references: [modules.id],
+    }),
+    user: one(user, {
+        fields: [progress.userId],
+        references: [user.id],
+    }),
+}));
+
+export const userBadgesRelations = relations(userBadges, ({ one }) => ({
+    badge: one(badges, {
+        fields: [userBadges.badgeId],
+        references: [badges.id],
+    }),
+    user: one(user, {
+        fields: [userBadges.userId],
+        references: [user.id],
+    }),
+}));

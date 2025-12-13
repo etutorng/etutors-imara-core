@@ -15,6 +15,7 @@ async function seedLMS() {
                 category: "Fashion",
                 language: "en",
                 thumbnailUrl: "https://images.unsplash.com/photo-1556905055-8f358a7a47b2?q=80&w=2070&auto=format&fit=crop",
+                isMaster: true,
             })
             .returning();
 

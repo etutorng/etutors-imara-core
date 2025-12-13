@@ -16,10 +16,12 @@ import {
     BookOpen
 } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useSession } from "@/lib/auth/client";
 import { useLanguage } from "@/lib/i18n/language-context";
+import { getUserDashboardStats } from "@/app/actions/dashboard";
+import { formatDistanceToNow } from "date-fns";
 
 export default function DashboardPage() {
     const { data: session, isPending } = useSession();
@@ -27,58 +29,53 @@ export default function DashboardPage() {
     const router = useRouter();
     const userName = session?.user?.name || "there";
 
+    const [stats, setStats] = useState({
+        activeCases: 0,
+        coursesInProgress: 0,
+        badgesEarned: 0,
+        mentorMessages: 0,
+    });
+    const [recentActivity, setRecentActivity] = useState<any[]>([]);
+    const [loading, setLoading] = useState(true);
+
     useEffect(() => {
         if (!isPending && !session) {
             router.push("/signin");
         }
     }, [session, isPending, router]);
 
+    const [learningProgress, setLearningProgress] = useState({
+        overall: 0,
+        thisWeek: 0
+    });
+
+    useEffect(() => {
+        async function loadStats() {
+            if (session?.user) {
+                try {
+                    const data = await getUserDashboardStats();
+                    if (data) {
+                        setStats(data.stats);
+                        setRecentActivity(data.recentActivity);
+                        if (data.learningProgress) {
+                            setLearningProgress(data.learningProgress);
+                        }
+                    }
+                } catch (error) {
+                    console.error("Failed to load dashboard stats:", error);
+                } finally {
+                    setLoading(false);
+                }
+            }
+        }
+        loadStats();
+    }, [session]);
+
     if (isPending || !session) {
         return null; // Or a loading spinner
     }
 
-    // Mock data - replace with real data from API
-    const stats = {
-        activeCases: 2,
-        coursesInProgress: 3,
-        badgesEarned: 5,
-        mentorMessages: 4,
-    };
-
-    type ActivityItem = {
-        type: string;
-        title: string;
-        icon: any;
-        color: string;
-        progress?: number;
-        status?: string;
-        time?: string;
-    };
-
-    const recentActivity: ActivityItem[] = [
-        {
-            type: "course",
-            title: "Digital Literacy Basics",
-            progress: 65,
-            icon: GraduationCap,
-            color: "text-primary",
-        },
-        {
-            type: "legal",
-            title: "Workplace Harassment Case",
-            status: "In Progress",
-            icon: Scale,
-            color: "text-accent",
-        },
-        {
-            type: "mentor",
-            title: "New message from Mentor Sarah",
-            time: "2 hours ago",
-            icon: Users,
-            color: "text-primary",
-        },
-    ];
-
+    // ... existing quickActions code ...
     const quickActions = [
         {
             title: "Submit Legal Request",
@@ -110,6 +107,15 @@ export default function DashboardPage() {
         },
     ];
 
+    const getIcon = (iconName: string) => {
+        switch (iconName) {
+            case "Scale": return Scale;
+            case "GraduationCap": return GraduationCap;
+            case "Users": return Users;
+            default: return TrendingUp;
+        }
+    };
+
     return (
         <div className="container mx-auto px-4 py-8 max-w-7xl">
             <div className="space-y-8">
@@ -130,28 +136,28 @@ export default function DashboardPage() {
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                     <StatCard
                         title={t("dashboard.activeCases")}
-                        value={stats.activeCases}
+                        value={loading ? "-" : stats.activeCases}
                         icon={Scale}
                         description="Cases being processed"
                         variant="primary"
                     />
                     <StatCard
                         title={t("dashboard.coursesInProgress")}
-                        value={stats.coursesInProgress}
+                        value={loading ? "-" : stats.coursesInProgress}
                         icon={GraduationCap}
                         description="Keep learning!"
                         variant="accent"
                     />
                     <StatCard
                         title={t("dashboard.badgesEarned")}
-                        value={stats.badgesEarned}
+                        value={loading ? "-" : stats.badgesEarned}
                         icon={Award}
                         description="Achievements unlocked"
                         variant="primary"
                     />
                     <StatCard
                         title={t("dashboard.mentorMessages")}
-                        value={stats.mentorMessages}
+                        value={loading ? "-" : stats.mentorMessages}
                         icon={Users}
                         description="Unread messages"
                         variant="accent"
@@ -163,47 +169,39 @@ export default function DashboardPage() {
                     <div className="lg:col-span-2 space-y-4">
                         <div className="flex items-center justify-between">
                             <h2 className="text-2xl font-bold">{t("dashboard.recentActivity")}</h2>
-                            <Button variant="ghost" size="sm">
-                                {t("dashboard.viewAll")}
-                                <ArrowRight className="ml-2 h-4 w-4" />
-                            </Button>
                         </div>
 
                         <div className="space-y-3">
-                            {recentActivity.map((activity, index) => {
-                                const Icon = activity.icon;
-                                return (
-                                    <GradientCard key={index} variant="default" className="p-4">
-                                        <div className="flex items-start gap-4">
-                                            <div className={`rounded-lg bg-muted p-2 ${activity.color}`}>
-                                                <Icon className="h-5 w-5" />
+                            {loading ? (
+                                <p className="text-muted-foreground">Loading activity...</p>
+                            ) : recentActivity.length === 0 ? (
+                                <p className="text-muted-foreground">No recent activity.</p>
+                            ) : (
+                                recentActivity.map((activity, index) => {
+                                    const Icon = getIcon(activity.icon);
+                                    return (
+                                        <GradientCard key={index} variant="default" className="p-4">
+                                            <div className="flex items-start gap-4">
+                                                <div className={`rounded-lg bg-muted p-2 ${activity.color}`}>
+                                                    <Icon className="h-5 w-5" />
+                                                </div>
+                                                <div className="flex-1 min-w-0">
+                                                    <h3 className="font-semibold text-sm mb-1">{activity.title}</h3>
+                                                    {activity.subtitle && (
+                                                        <p className="text-xs text-muted-foreground mb-1">{activity.subtitle}</p>
+                                                    )}
+                                                    {activity.status && (
+                                                        <p className="text-xs font-medium">{activity.status}</p>
+                                                    )}
+                                                    <p className="text-xs text-muted-foreground">
+                                                        {formatDistanceToNow(new Date(activity.date), { addSuffix: true })}
+                                                    </p>
+                                                </div>
                                             </div>
-                                            <div className="flex-1 min-w-0">
-                                                <h3 className="font-semibold text-sm mb-1">{activity.title}</h3>
-                                                {activity.progress !== undefined && (
-                                                    <div className="flex items-center gap-3">
-                                                        <div className="flex-1 h-2 bg-muted rounded-full overflow-hidden">
-                                                            <div
-                                                                className="h-full bg-primary transition-all"
-                                                                style={{ width: `${activity.progress}%` }}
-                                                            />
-                                                        </div>
-                                                        <span className="text-xs text-muted-foreground whitespace-nowrap">
-                                                            {activity.progress}%
-                                                        </span>
-                                                    </div>
-                                                )}
-                                                {activity.status && (
-                                                    <p className="text-xs text-muted-foreground">{activity.status}</p>
-                                                )}
-                                                {activity.time && (
-                                                    <p className="text-xs text-muted-foreground">{activity.time}</p>
-                                                )}
-                                            </div>
-                                        </div>
-                                    </GradientCard>
-                                );
-                            })}
+                                        </GradientCard>
+                                    );
+                                })
+                            )}
                         </div>
                     </div>
 
@@ -257,11 +255,11 @@ export default function DashboardPage() {
                         </div>
                         <div className="flex gap-8">
                             <div className="text-center">
-                                <ProgressRing progress={65} size={80} showValue />
+                                <ProgressRing progress={learningProgress.overall} size={80} showValue />
                                 <p className="text-xs text-muted-foreground mt-2">{t("dashboard.overallProgress")}</p>
                             </div>
                             <div className="text-center">
-                                <ProgressRing progress={45} size={80} color="text-accent" showValue />
+                                <ProgressRing progress={learningProgress.thisWeek} size={80} color="text-accent" showValue />
                                 <p className="text-xs text-muted-foreground mt-2">{t("dashboard.thisWeek")}</p>
                             </div>
                         </div>

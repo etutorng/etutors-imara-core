@@ -26,7 +26,7 @@ export default function PublicLegalPage() {
                     </h1>
 
                     <p className="text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto">
-                        We provide free legal aid to women and girls in Nigeria. Choose the option that feels safest for you right now.
+                        We provide free legal aid to underserved and vulnerable girl child in nigeria. Choose the option that feels safest for you right now.
                     </p>
                 </div>
             </section>
