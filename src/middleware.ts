@@ -29,6 +29,9 @@ export async function middleware(request: NextRequest) {
     }
 
     if (isAuthRoute()) {
+        if (sessionCookie) {
+            return NextResponse.redirect(new URL(DEFAULT_LOGIN_REDIRECT, request.url));
+        }
         return NextResponse.next();
     }
 

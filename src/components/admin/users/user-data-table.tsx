@@ -30,7 +30,7 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Loader2, MoreHorizontal, Pencil, Trash2, Plus, Search, Filter } from "lucide-react";
+import { Loader2, MoreHorizontal, Pencil, Trash2, Plus, Search, Filter, Eye, EyeOff } from "lucide-react";
 import { toast } from "sonner";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
@@ -49,8 +49,9 @@ export function UserDataTable() {
     const [isEditOpen, setIsEditOpen] = useState(false);
     const [isCreateOpen, setIsCreateOpen] = useState(false);
     const [currentUser, setCurrentUser] = useState<UserType | null>(null);
-    const [formData, setFormData] = useState<Partial<UserType>>({});
+    const [formData, setFormData] = useState<Partial<UserType> & { password?: string }>({});
     const [saving, setSaving] = useState(false);
+    const [showPassword, setShowPassword] = useState(false);
 
     // Debounce search
     useEffect(() => {
@@ -106,6 +107,7 @@ export function UserDataTable() {
                 email: formData.email!,
                 role: formData.role as any,
                 isActive: formData.isActive || false,
+                password: formData.password && formData.password.length > 0 ? formData.password : undefined,
             });
 
             if (res.error) {
@@ -315,6 +317,35 @@ export function UserDataTable() {
                             </Select>
                         </div>
                         <div className="grid grid-cols-4 items-center gap-4">
+                            <Label htmlFor="edit-password" className="text-right">
+                                Password
+                            </Label>
+                            <div className="col-span-3 relative">
+                                <Input
+                                    id="edit-password"
+                                    type={showPassword ? "text" : "password"}
+                                    value={formData.password || ""}
+                                    onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                                    className="pr-10"
+                                    placeholder="(Optional) Change password"
+                                />
+                                <Button
+                                    type="button"
+                                    variant="ghost"
+                                    size="sm"
+                                    className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
+                                    onClick={() => setShowPassword(!showPassword)}
+                                >
+                                    {showPassword ? (
+                                        <EyeOff className="h-4 w-4 text-muted-foreground" />
+                                    ) : (
+                                        <Eye className="h-4 w-4 text-muted-foreground" />
+                                    )}
+                                    <span className="sr-only">Toggle password visibility</span>
+                                </Button>
+                            </div>
+                        </div>
+                        <div className="grid grid-cols-4 items-center gap-4">
                             <Label htmlFor="active" className="text-right">
                                 Active
                             </Label>
@@ -337,19 +368,120 @@ export function UserDataTable() {
             </Dialog>
 
             {/* Create User Modal (Simplified) */}
+            {/* Create User Modal */}
             <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
                 <DialogContent>
                     <DialogHeader>
                         <DialogTitle>Add New User</DialogTitle>
                         <DialogDescription>
-                            User creation is handled via public registration for now.
+                            Create a new user. They will receive an email with their credentials.
                         </DialogDescription>
                     </DialogHeader>
-                    <div className="py-4">
-                        <p className="text-sm">Please ask the user to sign up at /signin or implement a full invite system.</p>
+                    <div className="grid gap-4 py-4">
+                        <div className="grid grid-cols-4 items-center gap-4">
+                            <Label htmlFor="new-name" className="text-right">Name</Label>
+                            <Input
+                                id="new-name"
+                                value={formData.name || ""}
+                                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                                className="col-span-3"
+                                placeholder="John Doe"
+                            />
+                        </div>
+                        <div className="grid grid-cols-4 items-center gap-4">
+                            <Label htmlFor="new-email" className="text-right">Email</Label>
+                            <Input
+                                id="new-email"
+                                type="email"
+                                value={formData.email || ""}
+                                onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                                className="col-span-3"
+                                placeholder="john@example.com"
+                            />
+                        </div>
+                        <div className="grid grid-cols-4 items-center gap-4">
+                            <Label htmlFor="new-role" className="text-right">Role</Label>
+                            <Select
+                                value={formData.role || "USER"}
+                                onValueChange={(val: any) => setFormData({ ...formData, role: val })}
+                            >
+                                <SelectTrigger className="col-span-3">
+                                    <SelectValue placeholder="Select a role" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="USER">User</SelectItem>
+                                    <SelectItem value="SUPER_ADMIN">Super Admin</SelectItem>
+                                    <SelectItem value="CONTENT_EDITOR">Content Editor</SelectItem>
+                                    <SelectItem value="LEGAL_PARTNER">Legal Partner</SelectItem>
+                                    <SelectItem value="COUNSELLOR">Counsellor</SelectItem>
+                                </SelectContent>
+                            </Select>
+                        </div>
+
+                        <div className="grid grid-cols-4 items-center gap-4">
+                            <Label htmlFor="new-password" className="text-right">Password</Label>
+                            <div className="col-span-3 relative">
+                                <Input
+                                    id="new-password"
+                                    type={showPassword ? "text" : "password"}
+                                    value={formData.password || ""}
+                                    onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                                    className="pr-10"
+                                    placeholder="(Optional) Leave empty to auto-generate"
+                                />
+                                <Button
+                                    type="button"
+                                    variant="ghost"
+                                    size="sm"
+                                    className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
+                                    onClick={() => setShowPassword(!showPassword)}
+                                >
+                                    {showPassword ? (
+                                        <EyeOff className="h-4 w-4 text-muted-foreground" />
+                                    ) : (
+                                        <Eye className="h-4 w-4 text-muted-foreground" />
+                                    )}
+                                    <span className="sr-only">Toggle password visibility</span>
+                                </Button>
+                            </div>
+                        </div>
                     </div>
                     <DialogFooter>
-                        <Button variant="outline" onClick={() => setIsCreateOpen(false)}>Close</Button>
+                        <Button variant="outline" onClick={() => setIsCreateOpen(false)}>Cancel</Button>
+                        <Button onClick={async () => {
+                            if (!formData.email || !formData.name) {
+                                toast.error("Name and Email are required");
+                                return;
+                            }
+                            setSaving(true);
+                            try {
+                                const res = await createUser({
+                                    name: formData.name,
+                                    email: formData.email,
+                                    role: (formData.role || "USER") as any,
+                                    password: formData.password && formData.password.length > 0 ? formData.password : undefined,
+                                } as any);
+
+                                if (res.error) {
+                                    toast.error(res.error);
+                                } else {
+                                    if (res.warning) {
+                                        toast.warning(res.warning);
+                                    } else {
+                                        toast.success("User created and email sent!");
+                                    }
+                                    setIsCreateOpen(false);
+                                    setFormData({});
+                                    fetchUsers();
+                                }
+                            } catch (err) {
+                                toast.error("Failed to create user");
+                            } finally {
+                                setSaving(false);
+                            }
+                        }} disabled={saving}>
+                            {saving ? "Creating..." : "Create User"}
+                        </Button>
                     </DialogFooter>
                 </DialogContent>
             </Dialog>

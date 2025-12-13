@@ -21,6 +21,9 @@ export const user = pgTable("user", {
   isActive: boolean("is_active").default(true),
   genderSelfAttested: boolean("gender_self_attested").default(false),
   gender: boolean("gender").notNull(),
+  banned: boolean("banned"),
+  banReason: text("banReason"),
+  banExpires: timestamp("banExpires"),
   createdAt: timestamp("createdAt").defaultNow(),
   updatedAt: timestamp("updatedAt")
     .defaultNow()
