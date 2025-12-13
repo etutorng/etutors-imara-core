@@ -39,7 +39,9 @@ export async function middleware(request: NextRequest) {
     // RBAC Logic
     if (sessionCookie && request.nextUrl.pathname.startsWith("/admin")) {
         try {
-            const res = await fetch(`${request.nextUrl.origin}/api/auth/get-session`, {
+            const fetchUrl = `${request.nextUrl.origin}/api/auth/get-session`;
+            console.log("Middleware fetching session from:", fetchUrl);
+            const res = await fetch(fetchUrl, {
                 headers: {
                     cookie: request.headers.get("cookie") || "",
                 },
