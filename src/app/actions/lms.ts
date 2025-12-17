@@ -61,6 +61,57 @@ export async function createCourse(data: z.infer<typeof createCourseSchema>) {
     }
 }
 
+export async function updateCourse(id: string, data: Partial<z.infer<typeof createCourseSchema>>) {
+    const session = await auth.api.getSession({
+        headers: await headers(),
+    });
+
+    if (!session || (session.user as any).role !== "SUPER_ADMIN") {
+        return { error: "Unauthorized" };
+    }
+
+    try {
+        await db.transaction(async (tx) => {
+            // Update course details
+            if (data.title || data.description || data.category || data.thumbnailUrl !== undefined) {
+                await tx.update(courses)
+                    .set({
+                        title: data.title,
+                        description: data.description,
+                        category: data.category,
+                        thumbnailUrl: data.thumbnailUrl || null,
+                    })
+                    .where(eq(courses.id, id));
+            }
+
+            // Update modules if provided
+            // Strategy: Delete existing and re-insert (simplest for reordering/updates in this context)
+            // Ideally we'd diff, but for MVP this ensures consistency.
+            if (data.modules) {
+                await tx.delete(modules).where(eq(modules.courseId, id));
+
+                if (data.modules.length > 0) {
+                    await tx.insert(modules).values(
+                        data.modules.map((mod, index) => ({
+                            courseId: id,
+                            title: mod.title,
+                            videoUrl: mod.videoUrl,
+                            duration: mod.duration,
+                            order: index + 1,
+                        }))
+                    );
+                }
+            }
+        });
+
+        revalidatePath("/admin/content");
+        return { success: true };
+    } catch (error) {
+        console.error("Failed to update course:", error);
+        return { error: "Failed to update course" };
+    }
+}
+
 export async function getVocationalCourses() {
     const session = await auth.api.getSession({
         headers: await headers(),

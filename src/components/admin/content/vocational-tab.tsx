@@ -44,8 +44,9 @@ export function VocationalTab({ courses }: VocationalTabProps) {
     const [open, setOpen] = useState(false);
     const [step, setStep] = useState(1);
     const [loading, setLoading] = useState(false);
+    const [editingId, setEditingId] = useState<string | null>(null);
 
-    // Form State
+    // Form State (extended for edit)
     const [title, setTitle] = useState("");
     const [description, setDescription] = useState("");
     const [category, setCategory] = useState("");
@@ -53,46 +54,90 @@ export function VocationalTab({ courses }: VocationalTabProps) {
     const [modules, setModules] = useState<{ title: string; videoUrl: string }[]>([]);
     const [currentModule, setCurrentModule] = useState({ title: "", videoUrl: "" });
 
+    const [editingModuleIndex, setEditingModuleIndex] = useState<number | null>(null);
+
     const resetForm = () => {
+        setEditingId(null);
         setTitle("");
         setDescription("");
         setCategory("");
         setThumbnailUrl("");
         setModules([]);
         setCurrentModule({ title: "", videoUrl: "" });
+        setEditingModuleIndex(null);
         setStep(1);
+    };
+
+    const handleEdit = (course: any) => {
+        setEditingId(course.id);
+        setTitle(course.title);
+        setDescription(course.description);
+        setCategory(course.category);
+        setThumbnailUrl(course.thumbnailUrl || "");
+        setModules(course.modules?.map((m: any) => ({ title: m.title, videoUrl: m.videoUrl })) || []);
+
+        setStep(1);
+        setOpen(true);
     };
 
     const handleAddModule = () => {
         if (currentModule.title && currentModule.videoUrl) {
-            setModules([...modules, currentModule]);
+            if (editingModuleIndex !== null) {
+                const newModules = [...modules];
+                newModules[editingModuleIndex] = currentModule;
+                setModules(newModules);
+                setEditingModuleIndex(null);
+            } else {
+                setModules([...modules, currentModule]);
+            }
             setCurrentModule({ title: "", videoUrl: "" });
         }
+    };
+
+    const handleEditModule = (index: number) => {
+        setCurrentModule(modules[index]);
+        setEditingModuleIndex(index);
     };
 
     const handleRemoveModule = (index: number) => {
         const newModules = [...modules];
         newModules.splice(index, 1);
         setModules(newModules);
+        if (editingModuleIndex === index) {
+            setEditingModuleIndex(null);
+            setCurrentModule({ title: "", videoUrl: "" });
+        }
     };
 
     const handleSubmit = async () => {
         setLoading(true);
         try {
-            const result = await createCourse({
-                title,
-                description,
-                category,
-                thumbnailUrl,
-                modules,
-            });
+            let result;
+            if (editingId) {
+                const { updateCourse } = await import("@/app/actions/lms");
+                result = await updateCourse(editingId, {
+                    title,
+                    description,
+                    category,
+                    thumbnailUrl,
+                    modules,
+                });
+            } else {
+                result = await createCourse({
+                    title,
+                    description,
+                    category,
+                    thumbnailUrl,
+                    modules,
+                });
+            }
 
             if (result.success) {
-                toast.success("Course created successfully");
+                toast.success(editingId ? "Course updated" : "Course created");
                 setOpen(false);
                 resetForm();
             } else {
-                toast.error(result.error || "Failed to create course");
+                toast.error(result.error || "Failed to save course");
             }
         } catch (error) {
             toast.error("An error occurred");
@@ -104,7 +149,10 @@ export function VocationalTab({ courses }: VocationalTabProps) {
     return (
         <div className="space-y-4">
             <div className="flex justify-end">
-                <Dialog open={open} onOpenChange={setOpen}>
+                <Dialog open={open} onOpenChange={(val) => {
+                    setOpen(val);
+                    if (!val) resetForm();
+                }}>
                     <DialogTrigger asChild>
                         <Button onClick={resetForm}>
                             <Plus className="mr-2 h-4 w-4" /> Add Course
@@ -112,9 +160,9 @@ export function VocationalTab({ courses }: VocationalTabProps) {
                     </DialogTrigger>
                     <DialogContent className="max-w-2xl">
                         <DialogHeader>
-                            <DialogTitle>Create Vocational Course</DialogTitle>
+                            <DialogTitle>{editingId ? "Edit Vocational Course" : "Create Vocational Course"}</DialogTitle>
                             <DialogDescription>
-                                Add a new vocational course with modules.
+                                {editingId ? "Edit course details and modules." : "Add a new vocational course with modules."}
                             </DialogDescription>
                         </DialogHeader>
 
@@ -152,7 +200,7 @@ export function VocationalTab({ courses }: VocationalTabProps) {
                         {step === 2 && (
                             <div className="space-y-4 py-4">
                                 <div className="border rounded-md p-4 space-y-4 bg-muted/50">
-                                    <h4 className="font-medium text-sm">Add Module</h4>
+                                    <h4 className="font-medium text-sm">{editingModuleIndex !== null ? "Edit Module" : "Add Module"}</h4>
                                     <div className="grid gap-4 md:grid-cols-2">
                                         <div className="space-y-2">
                                             <Label>Module Title</Label>
@@ -171,9 +219,19 @@ export function VocationalTab({ courses }: VocationalTabProps) {
                                             />
                                         </div>
                                     </div>
-                                    <Button onClick={handleAddModule} type="button" variant="secondary" size="sm" className="w-full">
-                                        Add Module
-                                    </Button>
+                                    <div className="flex gap-2">
+                                        <Button onClick={handleAddModule} type="button" variant="secondary" size="sm" className="w-full">
+                                            {editingModuleIndex !== null ? "Update Module" : "Add Module"}
+                                        </Button>
+                                        {editingModuleIndex !== null && (
+                                            <Button onClick={() => {
+                                                setEditingModuleIndex(null);
+                                                setCurrentModule({ title: "", videoUrl: "" });
+                                            }} type="button" variant="outline" size="sm">
+                                                Cancel
+                                            </Button>
+                                        )}
+                                    </div>
                                 </div>
 
                                 <div className="space-y-2">
@@ -183,14 +241,17 @@ export function VocationalTab({ courses }: VocationalTabProps) {
                                     ) : (
                                         <div className="space-y-2 max-h-[200px] overflow-y-auto border rounded-md p-2">
                                             {modules.map((mod, idx) => (
-                                                <div key={idx} className="flex items-center justify-between bg-background p-2 rounded border">
+                                                <div key={idx} className={`flex items-center justify-between bg-background p-2 rounded border ${editingModuleIndex === idx ? 'border-primary ring-1 ring-primary' : ''}`}>
                                                     <div className="flex items-center gap-2">
                                                         <Video className="h-4 w-4 text-muted-foreground" />
                                                         <span className="text-sm font-medium">{mod.title}</span>
                                                     </div>
-                                                    <Button variant="ghost" size="icon" onClick={() => handleRemoveModule(idx)}>
-                                                        <Trash className="h-4 w-4 text-destructive" />
-                                                    </Button>
+                                                    <div className="flex items-center gap-1">
+                                                        <Button variant="ghost" size="xs" onClick={() => handleEditModule(idx)}>Edit</Button>
+                                                        <Button variant="ghost" size="icon" onClick={() => handleRemoveModule(idx)}>
+                                                            <Trash className="h-4 w-4 text-destructive" />
+                                                        </Button>
+                                                    </div>
                                                 </div>
                                             ))}
                                         </div>
@@ -207,7 +268,7 @@ export function VocationalTab({ courses }: VocationalTabProps) {
                                 <Button onClick={() => setStep(2)} disabled={!title || !category}>Next: Modules</Button>
                             ) : (
                                 <Button onClick={handleSubmit} disabled={loading || modules.length === 0}>
-                                    {loading ? "Creating..." : "Create Course"}
+                                    {loading ? "{editingId ? 'Updating...' : 'Creating...'}" : editingId ? "Update Course" : "Create Course"}
                                 </Button>
                             )}
                         </DialogFooter>
@@ -251,7 +312,7 @@ export function VocationalTab({ courses }: VocationalTabProps) {
                                         <TableCell>{course.category}</TableCell>
                                         <TableCell>{course.moduleCount}</TableCell>
                                         <TableCell className="text-right">
-                                            <Button variant="ghost" size="sm">Edit</Button>
+                                            <Button variant="ghost" size="sm" onClick={() => handleEdit(course)}>Edit</Button>
                                         </TableCell>
                                     </TableRow>
                                 ))

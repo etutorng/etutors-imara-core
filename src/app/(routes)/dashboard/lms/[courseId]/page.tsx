@@ -19,7 +19,7 @@ export default async function CoursePage({ params }: PageProps) {
         notFound();
     }
 
-    const alternateCourse = await getAlternateCourse(course.category, course.language);
+    const alternateCourse = await getAlternateCourse(course.groupId, course.language);
 
     return (
         <div className="container mx-auto p-4 space-y-6">

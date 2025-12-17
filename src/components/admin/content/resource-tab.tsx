@@ -42,8 +42,7 @@ interface ResourceTabProps {
 }
 
 export function ResourceTab({ resources }: ResourceTabProps) {
-    const [open, setOpen] = useState(false);
-    const [loading, setLoading] = useState(false);
+    const [editingId, setEditingId] = useState<string | null>(null);
 
     // Form State
     const [title, setTitle] = useState("");
@@ -53,6 +52,7 @@ export function ResourceTab({ resources }: ResourceTabProps) {
     const [language, setLanguage] = useState("en");
 
     const resetForm = () => {
+        setEditingId(null);
         setTitle("");
         setCategory("");
         setType("article");
@@ -60,23 +60,50 @@ export function ResourceTab({ resources }: ResourceTabProps) {
         setLanguage("en");
     };
 
+    const handleEdit = (res: any) => {
+        setEditingId(res.id);
+        setTitle(res.title);
+        setCategory(res.category);
+        setType(res.format as any);
+        setLanguage(res.language);
+        // Map content/url back to form 'content'
+        if (res.format === "article") {
+            setContent(res.content || "");
+        } else {
+            setContent(res.url || "");
+        }
+        setOpen(true);
+    };
+
     const handleSubmit = async () => {
         setLoading(true);
         try {
-            const result = await createResource({
-                title,
-                category,
-                type,
-                content,
-                language,
-            });
+            let result;
+            if (editingId) {
+                const { updateResource } = await import("@/app/actions/resources");
+                result = await updateResource(editingId, {
+                    title,
+                    category,
+                    type,
+                    content,
+                    language,
+                });
+            } else {
+                result = await createResource({
+                    title,
+                    category,
+                    type,
+                    content,
+                    language,
+                });
+            }
 
             if (result.success) {
-                toast.success("Resource created successfully");
+                toast.success(editingId ? "Resource updated" : "Resource created");
                 setOpen(false);
                 resetForm();
             } else {
-                toast.error(result.error || "Failed to create resource");
+                toast.error(result.error || "Failed to save resource");
             }
         } catch (error) {
             toast.error("An error occurred");
@@ -88,7 +115,10 @@ export function ResourceTab({ resources }: ResourceTabProps) {
     return (
         <div className="space-y-4">
             <div className="flex justify-end">
-                <Dialog open={open} onOpenChange={setOpen}>
+                <Dialog open={open} onOpenChange={(val) => {
+                    setOpen(val);
+                    if (!val) resetForm();
+                }}>
                     <DialogTrigger asChild>
                         <Button onClick={resetForm}>
                             <Plus className="mr-2 h-4 w-4" /> Add Resource
@@ -96,9 +126,9 @@ export function ResourceTab({ resources }: ResourceTabProps) {
                     </DialogTrigger>
                     <DialogContent className="max-w-2xl">
                         <DialogHeader>
-                            <DialogTitle>Add Resource</DialogTitle>
+                            <DialogTitle>{editingId ? "Edit Resource" : "Add Resource"}</DialogTitle>
                             <DialogDescription>
-                                Add a new resource to the library.
+                                {editingId ? "Edit resource details." : "Add a new resource to the library."}
                             </DialogDescription>
                         </DialogHeader>
 
@@ -177,7 +207,7 @@ export function ResourceTab({ resources }: ResourceTabProps) {
 
                         <DialogFooter>
                             <Button onClick={handleSubmit} disabled={loading || !title || !category || !content}>
-                                {loading ? "Creating..." : "Create Resource"}
+                                {loading ? "Saving..." : editingId ? "Update Resource" : "Create Resource"}
                             </Button>
                         </DialogFooter>
                     </DialogContent>
@@ -221,7 +251,7 @@ export function ResourceTab({ resources }: ResourceTabProps) {
                                         <TableCell>{res.category}</TableCell>
                                         <TableCell className="uppercase text-xs font-bold text-muted-foreground">{res.language}</TableCell>
                                         <TableCell className="text-right">
-                                            <Button variant="ghost" size="sm">Edit</Button>
+                                            <Button variant="ghost" size="sm" onClick={() => handleEdit(res)}>Edit</Button>
                                         </TableCell>
                                     </TableRow>
                                 ))
