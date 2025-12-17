@@ -28,9 +28,13 @@ export const ticketReplies = pgTable("ticket_replies", {
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
-export const ticketsRelations = relations(tickets, ({ many }) => ({
+export const ticketsRelations = relations(tickets, ({ many, one }) => ({
   evidence: many(evidence),
   replies: many(ticketReplies),
+  user: one(user, {
+    fields: [tickets.userId],
+    references: [user.id],
+  }),
 }));
 
 export const evidenceRelations = relations(evidence, ({ one }) => ({

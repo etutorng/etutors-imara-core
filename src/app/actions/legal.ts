@@ -81,6 +81,7 @@ export async function getAllTickets() {
     const allTickets = await db.query.tickets.findMany({
         with: {
             evidence: true,
+            user: true,
         },
         orderBy: (tickets, { desc }) => [desc(tickets.createdAt)],
     });

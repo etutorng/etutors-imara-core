@@ -24,9 +24,12 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import { Plus, Trash, Video } from "lucide-react";
-import { createCourse } from "@/app/actions/lms";
+import { Plus, Trash, Video, Upload, Link as LinkIcon, FileVideo } from "lucide-react";
+import { createCourse, deleteCourse, updateCourse } from "@/app/actions/lms";
+import { uploadFile } from "@/app/actions/upload";
 import { toast } from "sonner";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 
 interface Course {
     id: string;
@@ -51,10 +54,15 @@ export function VocationalTab({ courses }: VocationalTabProps) {
     const [description, setDescription] = useState("");
     const [category, setCategory] = useState("");
     const [thumbnailUrl, setThumbnailUrl] = useState("");
-    const [modules, setModules] = useState<{ title: string; videoUrl: string }[]>([]);
-    const [currentModule, setCurrentModule] = useState({ title: "", videoUrl: "" });
+    const [modules, setModules] = useState<{ title: string; videoUrl: string; duration: number }[]>([]);
+    const [currentModule, setCurrentModule] = useState({ title: "", videoUrl: "", duration: 0 });
 
     const [editingModuleIndex, setEditingModuleIndex] = useState<number | null>(null);
+
+    // Upload States
+    const [isUploadingThumbnail, setIsUploadingThumbnail] = useState(false);
+    const [isUploadingVideo, setIsUploadingVideo] = useState(false);
+    const [videoSourceType, setVideoSourceType] = useState<"url" | "upload">("url");
 
     const resetForm = () => {
         setEditingId(null);
@@ -63,7 +71,7 @@ export function VocationalTab({ courses }: VocationalTabProps) {
         setCategory("");
         setThumbnailUrl("");
         setModules([]);
-        setCurrentModule({ title: "", videoUrl: "" });
+        setCurrentModule({ title: "", videoUrl: "", duration: 0 });
         setEditingModuleIndex(null);
         setStep(1);
     };
@@ -74,7 +82,7 @@ export function VocationalTab({ courses }: VocationalTabProps) {
         setDescription(course.description);
         setCategory(course.category);
         setThumbnailUrl(course.thumbnailUrl || "");
-        setModules(course.modules?.map((m: any) => ({ title: m.title, videoUrl: m.videoUrl })) || []);
+        setModules(course.modules?.map((m: any) => ({ title: m.title, videoUrl: m.videoUrl, duration: m.duration || 0 })) || []);
 
         setStep(1);
         setOpen(true);
@@ -94,9 +102,52 @@ export function VocationalTab({ courses }: VocationalTabProps) {
         }
     };
 
+    const handleThumbnailUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+
+        setIsUploadingThumbnail(true);
+        const formData = new FormData();
+        formData.append("file", file);
+
+        const result = await uploadFile(formData, "courses");
+        if (result.success && result.url) {
+            setThumbnailUrl(result.url);
+            toast.success("Thumbnail uploaded");
+        } else {
+            toast.error("Thumbnail upload failed");
+        }
+        setIsUploadingThumbnail(false);
+    };
+
+    const handleVideoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+
+        setIsUploadingVideo(true);
+        const formData = new FormData();
+        formData.append("file", file);
+
+        const result = await uploadFile(formData, "modules");
+        if (result.success && result.url) {
+            setCurrentModule({ ...currentModule, videoUrl: result.url });
+            toast.success("Video uploaded");
+        } else {
+            toast.error("Video upload failed");
+        }
+        setIsUploadingVideo(false);
+    };
+
     const handleEditModule = (index: number) => {
-        setCurrentModule(modules[index]);
+        const module = modules[index];
+        setCurrentModule(module);
         setEditingModuleIndex(index);
+        // Determine video source type based on URL (simple heuristic)
+        if (module.videoUrl.startsWith("/uploads")) {
+            setVideoSourceType("upload");
+        } else {
+            setVideoSourceType("url");
+        }
     };
 
     const handleRemoveModule = (index: number) => {
@@ -114,7 +165,6 @@ export function VocationalTab({ courses }: VocationalTabProps) {
         try {
             let result;
             if (editingId) {
-                const { updateCourse } = await import("@/app/actions/lms");
                 result = await updateCourse(editingId, {
                     title,
                     description,
@@ -152,7 +202,6 @@ export function VocationalTab({ courses }: VocationalTabProps) {
         if (!deleteId) return;
         setLoading(true);
         try {
-            const { deleteCourse } = await import("@/app/actions/lms");
             const result = await deleteCourse(deleteId);
             if (result.success) {
                 toast.success("Course deleted");
@@ -229,8 +278,43 @@ export function VocationalTab({ courses }: VocationalTabProps) {
                                     </Select>
                                 </div>
                                 <div className="space-y-2">
-                                    <Label>Thumbnail URL</Label>
-                                    <Input value={thumbnailUrl} onChange={(e) => setThumbnailUrl(e.target.value)} placeholder="https://..." />
+                                    <Label>Thumbnail Image</Label>
+                                    <div className="flex items-start gap-4">
+                                        {thumbnailUrl && (
+                                            <div className="relative h-20 w-32 border rounded-md overflow-hidden bg-muted">
+                                                <img src={thumbnailUrl} alt="Preview" className="h-full w-full object-cover" />
+                                                <button
+                                                    onClick={() => setThumbnailUrl("")}
+                                                    className="absolute top-1 right-1 bg-black/50 hover:bg-black/70 text-white rounded-full p-1"
+                                                >
+                                                    <Trash className="h-3 w-3" />
+                                                </button>
+                                            </div>
+                                        )}
+                                        <div className="grid w-full gap-1.5">
+                                            <Label htmlFor="thumbnail-upload" className="cursor-pointer">
+                                                <div className="flex items-center gap-2 border rounded-md px-3 py-2 text-sm hover:bg-muted/50 transition-colors w-full justify-center border-dashed">
+                                                    <Upload className="h-4 w-4" />
+                                                    {isUploadingThumbnail ? "Uploading..." : "Upload Thumbnail"}
+                                                </div>
+                                                <Input
+                                                    id="thumbnail-upload"
+                                                    type="file"
+                                                    accept="image/*"
+                                                    className="hidden"
+                                                    onChange={handleThumbnailUpload}
+                                                    disabled={isUploadingThumbnail}
+                                                />
+                                            </Label>
+                                            <p className="text-xs text-muted-foreground">Or paste URL manually:</p>
+                                            <Input
+                                                value={thumbnailUrl}
+                                                onChange={(e) => setThumbnailUrl(e.target.value)}
+                                                placeholder="https://..."
+                                                className="text-xs h-8"
+                                            />
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         )}
@@ -248,13 +332,66 @@ export function VocationalTab({ courses }: VocationalTabProps) {
                                                 placeholder="Module 1: Basics"
                                             />
                                         </div>
-                                        <div className="space-y-2">
-                                            <Label>Video URL</Label>
-                                            <Input
-                                                value={currentModule.videoUrl}
-                                                onChange={(e) => setCurrentModule({ ...currentModule, videoUrl: e.target.value })}
-                                                placeholder="YouTube/Vimeo Link"
-                                            />
+                                        <div className="space-y-4">
+                                            <div className="space-y-2">
+                                                <Label>Video Source</Label>
+                                                <Tabs value={videoSourceType} onValueChange={(v) => setVideoSourceType(v as any)} className="w-full">
+                                                    <TabsList className="grid w-full grid-cols-2">
+                                                        <TabsTrigger value="url" className="flex items-center gap-2">
+                                                            <LinkIcon className="h-4 w-4" /> External URL
+                                                        </TabsTrigger>
+                                                        <TabsTrigger value="upload" className="flex items-center gap-2">
+                                                            <FileVideo className="h-4 w-4" /> Upload Video
+                                                        </TabsTrigger>
+                                                    </TabsList>
+
+                                                    <TabsContent value="url" className="mt-2 space-y-2">
+                                                        <Label>Video URL (YouTube/Vimeo)</Label>
+                                                        <Input
+                                                            value={currentModule.videoUrl}
+                                                            onChange={(e) => setCurrentModule({ ...currentModule, videoUrl: e.target.value })}
+                                                            placeholder="https://youtube.com/..."
+                                                        />
+                                                    </TabsContent>
+
+                                                    <TabsContent value="upload" className="mt-2 space-y-2">
+                                                        <Label>Upload Video File</Label>
+                                                        {currentModule.videoUrl && currentModule.videoUrl.startsWith("/uploads") ? (
+                                                            <div className="flex items-center gap-2 border p-2 rounded bg-muted/20">
+                                                                <Video className="h-4 w-4 text-primary" />
+                                                                <span className="text-xs truncate flex-1">{currentModule.videoUrl.split('/').pop()}</span>
+                                                                <Button
+                                                                    variant="ghost"
+                                                                    size="sm"
+                                                                    onClick={() => setCurrentModule({ ...currentModule, videoUrl: "" })}
+                                                                >
+                                                                    <Trash className="h-3 w-3 text-destructive" />
+                                                                </Button>
+                                                            </div>
+                                                        ) : (
+                                                            <div className="grid w-full gap-1.5">
+                                                                <Label htmlFor="video-upload" className="cursor-pointer">
+                                                                    <div className="flex flex-col items-center gap-2 border rounded-md px-3 py-6 text-sm hover:bg-muted/50 transition-colors w-full justify-center border-dashed">
+                                                                        <Upload className="h-6 w-6 text-muted-foreground" />
+                                                                        <span className="font-medium text-muted-foreground">
+                                                                            {isUploadingVideo ? "Uploading..." : "Click to select video"}
+                                                                        </span>
+                                                                        <span className="text-xs text-muted-foreground/70">MP4, WebM up to 50MB</span>
+                                                                    </div>
+                                                                    <Input
+                                                                        id="video-upload"
+                                                                        type="file"
+                                                                        accept="video/*"
+                                                                        className="hidden"
+                                                                        onChange={handleVideoUpload}
+                                                                        disabled={isUploadingVideo}
+                                                                    />
+                                                                </Label>
+                                                            </div>
+                                                        )}
+                                                    </TabsContent>
+                                                </Tabs>
+                                            </div>
                                         </div>
                                     </div>
                                     <div className="flex gap-2">
@@ -264,7 +401,7 @@ export function VocationalTab({ courses }: VocationalTabProps) {
                                         {editingModuleIndex !== null && (
                                             <Button onClick={() => {
                                                 setEditingModuleIndex(null);
-                                                setCurrentModule({ title: "", videoUrl: "" });
+                                                setCurrentModule({ title: "", videoUrl: "", duration: 0 });
                                             }} type="button" variant="outline" size="sm">
                                                 Cancel
                                             </Button>
@@ -285,8 +422,8 @@ export function VocationalTab({ courses }: VocationalTabProps) {
                                                         <span className="text-sm font-medium">{mod.title}</span>
                                                     </div>
                                                     <div className="flex items-center gap-1">
-                                                        <Button variant="ghost" size="xs" onClick={() => handleEditModule(idx)}>Edit</Button>
-                                                        <Button variant="ghost" size="icon" onClick={() => handleRemoveModule(idx)}>
+                                                        <Button variant="ghost" size="sm" onClick={() => handleEditModule(idx)}>Edit</Button>
+                                                        <Button variant="ghost" size="sm" onClick={() => handleRemoveModule(idx)}>
                                                             <Trash className="h-4 w-4 text-destructive" />
                                                         </Button>
                                                     </div>
