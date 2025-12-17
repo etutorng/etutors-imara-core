@@ -1,6 +1,5 @@
-"use client";
-
 import { useState, useEffect, useRef } from "react";
+import { io } from "socket.io-client";
 import { sendMessage, getSessionMessages } from "@/app/actions/counselling";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -20,17 +19,43 @@ export function CounsellingChat({ session, currentUser }: CounsellingChatProps) 
     const [inputValue, setInputValue] = useState("");
     const [sending, setSending] = useState(false);
     const scrollRef = useRef<HTMLDivElement>(null);
+    const socketRef = useRef<any>(null);
 
-    // Poll for new messages every 5 seconds
+    // Socket.IO Connection
     useEffect(() => {
         if (!session?.id) return;
-        const interval = setInterval(async () => {
-            const res = await getSessionMessages(session.id);
-            if (res.messages) {
-                setMessages(res.messages);
-            }
-        }, 5000);
-        return () => clearInterval(interval);
+
+        // Connect to the standalone socket server
+        const socket = io("http://localhost:4000"); // Make this env var in prod
+
+        socket.on("connect", () => {
+            console.log("Connected to chat server");
+            socket.emit("join-room", session.id);
+        });
+
+        socket.on("message", (newMsg: any) => {
+            // Append message if not already present (optimistic UI might have added it)
+            setMessages((prev) => {
+                // If we find a temp message that matches content/sender, replace it? 
+                // For simplicity, just append if ID not in list.
+                // Or better: filter out temp messages if we get the real one?
+                // The socket message has a fake ID for now, let's just append.
+                if (prev.some(m => m.id === newMsg.id)) return prev;
+                return [...prev, newMsg];
+            });
+        });
+
+        return () => {
+            socket.disconnect();
+        };
+    }, [session?.id]);
+
+    // Initial load (keep using server action for history)
+    useEffect(() => {
+        if (!session?.id) return;
+        getSessionMessages(session.id).then(res => {
+            if (res.messages) setMessages(res.messages);
+        });
     }, [session?.id]);
 
     // Scroll to bottom on new messages
