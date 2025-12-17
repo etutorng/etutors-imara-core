@@ -42,6 +42,8 @@ interface ResourceTabProps {
 }
 
 export function ResourceTab({ resources }: ResourceTabProps) {
+    const [open, setOpen] = useState(false);
+    const [loading, setLoading] = useState(false);
     const [editingId, setEditingId] = useState<string | null>(null);
 
     // Form State

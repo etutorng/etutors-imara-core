@@ -6,6 +6,40 @@ import { auth } from "@/lib/auth/server";
 import { eq } from "drizzle-orm";
 import { headers } from "next/headers";
 import { revalidatePath } from "next/cache";
+import { writeFile, mkdir } from "fs/promises";
+import { join } from "path";
+
+export async function uploadLogo(formData: FormData) {
+    const session = await auth.api.getSession({
+        headers: await headers(),
+    });
+
+    if (!session || (session.user as any).role !== "SUPER_ADMIN") {
+        return { error: "Unauthorized" };
+    }
+
+    const file = formData.get("file") as File;
+    if (!file) {
+        return { error: "No file provided" };
+    }
+
+    const bytes = await file.arrayBuffer();
+    const buffer = Buffer.from(bytes);
+
+    // Create unique filename
+    const uniqueSuffix = Date.now() + "-" + Math.round(Math.random() * 1e9);
+    const filename = "logo-" + uniqueSuffix + "." + file.name.split(".").pop();
+    const uploadDir = join(process.cwd(), "public", "uploads");
+    
+    try {
+        await mkdir(uploadDir, { recursive: true });
+        await writeFile(join(uploadDir, filename), buffer);
+        return { success: true, url: `/uploads/${filename}` };
+    } catch (error) {
+        console.error("Upload failed:", error);
+        return { error: "Upload failed" };
+    }
+}
 
 export async function getSystemSettings() {
     const settings = await db.query.systemSettings.findFirst();
@@ -24,6 +58,7 @@ export async function updateSystemSettings(data: {
     supportEmail: string;
     maintenanceMode: boolean;
     allowRegistration: boolean;
+    siteLogoUrl?: string; // Optional
 }) {
     const session = await auth.api.getSession({
         headers: await headers(),
@@ -44,6 +79,7 @@ export async function updateSystemSettings(data: {
                 supportEmail: data.supportEmail,
                 maintenanceMode: data.maintenanceMode,
                 allowRegistration: data.allowRegistration,
+                siteLogoUrl: data.siteLogoUrl !== undefined ? data.siteLogoUrl : currentSettings.siteLogoUrl,
                 updatedAt: new Date(),
             })
             .where(eq(systemSettings.id, currentSettings.id));

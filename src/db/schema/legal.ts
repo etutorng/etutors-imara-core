@@ -20,13 +20,33 @@ export const evidence = pgTable("evidence", {
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
+export const ticketReplies = pgTable("ticket_replies", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  ticketId: uuid("ticket_id").references(() => tickets.id).notNull(),
+  senderId: text("sender_id").references(() => user.id), // Nullable for system messages if needed, but usually admin/user id
+  message: text("message").notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
 export const ticketsRelations = relations(tickets, ({ many }) => ({
   evidence: many(evidence),
+  replies: many(ticketReplies),
 }));
 
 export const evidenceRelations = relations(evidence, ({ one }) => ({
   ticket: one(tickets, {
     fields: [evidence.ticketId],
     references: [tickets.id],
+  }),
+}));
+
+export const ticketRepliesRelations = relations(ticketReplies, ({ one }) => ({
+  ticket: one(tickets, {
+    fields: [ticketReplies.ticketId],
+    references: [tickets.id],
+  }),
+  sender: one(user, {
+    fields: [ticketReplies.senderId],
+    references: [user.id],
   }),
 }));

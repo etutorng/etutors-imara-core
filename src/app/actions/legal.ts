@@ -1,7 +1,7 @@
 "use server";
 
 import { db } from "@/db";
-import { evidence, tickets } from "@/db/schema";
+import { evidence, tickets, ticketReplies } from "@/db/schema";
 import { auth } from "@/lib/auth/server";
 import { eq } from "drizzle-orm";
 import { headers } from "next/headers";
@@ -119,5 +119,80 @@ export async function updateTicketStatus(ticketId: string, status: string) {
     } catch (error) {
         console.error("Failed to update ticket status:", error);
         return { error: "Failed to update status" };
+    }
+}
+
+export async function getTicketReplies(ticketId: string) {
+    const session = await auth.api.getSession({
+        headers: await headers(),
+    });
+
+    if (!session) {
+        return [];
+    }
+
+    // Ensure user has access (is owner or admin)
+    // First, check ticket ownership if not admin
+    if ((session.user as any).role === "USER") {
+        const ticket = await db.query.tickets.findFirst({
+            where: eq(tickets.id, ticketId),
+            columns: { userId: true },
+        });
+
+        if (!ticket || ticket.userId !== session.user.id) {
+            return [];
+        }
+    }
+
+    const replies = await db.query.ticketReplies.findMany({
+        where: eq(ticketReplies.ticketId, ticketId),
+        with: {
+            sender: true, // Assuming relation exists
+        },
+        orderBy: (replies, { asc }) => [asc(replies.createdAt)],
+    });
+
+    return replies;
+}
+
+export async function sendReply(ticketId: string, message: string) {
+    const session = await auth.api.getSession({
+        headers: await headers(),
+    });
+
+    if (!session) {
+        return { error: "Unauthorized" };
+    }
+
+    // Verify access similar to getTicketReplies
+    if ((session.user as any).role === "USER") {
+        const ticket = await db.query.tickets.findFirst({
+            where: eq(tickets.id, ticketId),
+            columns: { userId: true },
+        });
+
+        if (!ticket || ticket.userId !== session.user.id) {
+            return { error: "Unauthorized" };
+        }
+    }
+
+    try {
+        await db.insert(ticketReplies).values({
+            ticketId,
+            senderId: session.user.id,
+            message,
+        });
+
+        // Optionally update ticket updated_at
+        await db.update(tickets)
+            .set({ updatedAt: new Date() })
+            .where(eq(tickets.id, ticketId));
+
+        revalidatePath("/admin/legal");
+        revalidatePath("/dashboard/legal");
+        return { success: true };
+    } catch (error) {
+        console.error("Failed to send reply:", error);
+        return { error: "Failed to send message" };
     }
 }

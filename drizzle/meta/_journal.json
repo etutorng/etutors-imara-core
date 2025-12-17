@@ -57,6 +57,13 @@
       "when": 1765652593228,
       "tag": "0007_sticky_thing",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1765974415834,
+      "tag": "0008_lively_green_goblin",
+      "breakpoints": true
     }
   ]
 }

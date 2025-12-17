@@ -35,6 +35,8 @@ export const metadata: Metadata = {
 
 import { headers } from "next/headers";
 
+import { getSystemSettings } from "@/app/actions/settings";
+
 export default async function RootLayout({
   children,
 }: Readonly<{
@@ -43,7 +45,9 @@ export default async function RootLayout({
   const headersList = await headers();
   const pathname = headersList.get("x-pathname") || "";
   const isAdminRoute = pathname.startsWith("/admin");
-  console.log("RootLayout - Pathname:", pathname, "IsAdmin:", isAdminRoute);
+  const settings = await getSystemSettings();
+
+  // Enforce Maintenance Mode is now handled in middleware (src/proxy.ts)
 
   return (
     <html lang="en">
@@ -51,7 +55,7 @@ export default async function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
         <Providers>
-          {!isAdminRoute && <Navbar />}
+          {!isAdminRoute && <Navbar logoUrl={settings.siteLogoUrl} />}
           <main className={isAdminRoute ? "" : "min-h-screen pb-16 md:pb-0"}>
             {children}
           </main>

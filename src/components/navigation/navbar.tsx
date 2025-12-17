@@ -42,7 +42,7 @@ const authNavItems: Array<{ href: string; labelKey: TranslationKey; icon: any }>
     { href: "/resources", labelKey: "nav.resources", icon: BookOpen },
 ];
 
-export function Navbar() {
+export function Navbar({ logoUrl }: { logoUrl?: string | null }) {
     const pathname = usePathname();
     const [isOpen, setIsOpen] = useState(false);
     const [isSigningOut, setIsSigningOut] = useState(false);
@@ -71,7 +71,7 @@ export function Navbar() {
             <div className="container flex h-16 items-center justify-between px-4">
                 <div className="flex items-center gap-2">
                     <Link href="/" className="flex items-center gap-2">
-                        <FullLogo className="h-14 w-48" />
+                        <FullLogo className="h-14 w-48" url={logoUrl} />
                     </Link>
                 </div>
 

@@ -146,9 +146,47 @@ export function VocationalTab({ courses }: VocationalTabProps) {
         }
     };
 
+    const [deleteId, setDeleteId] = useState<string | null>(null);
+
+    const handleDelete = async () => {
+        if (!deleteId) return;
+        setLoading(true);
+        try {
+            const { deleteCourse } = await import("@/app/actions/lms");
+            const result = await deleteCourse(deleteId);
+            if (result.success) {
+                toast.success("Course deleted");
+                setDeleteId(null);
+            } else {
+                toast.error(result.error || "Failed to delete course");
+            }
+        } catch (error) {
+            toast.error("An error occurred");
+        } finally {
+            setLoading(false);
+        }
+    };
+
     return (
         <div className="space-y-4">
             <div className="flex justify-end">
+                <Dialog open={!!deleteId} onOpenChange={(val) => !val && setDeleteId(null)}>
+                    <DialogContent>
+                        <DialogHeader>
+                            <DialogTitle>Delete Course</DialogTitle>
+                            <DialogDescription>
+                                Are you sure you want to delete this course? This action cannot be undone.
+                            </DialogDescription>
+                        </DialogHeader>
+                        <DialogFooter>
+                            <Button variant="outline" onClick={() => setDeleteId(null)}>Cancel</Button>
+                            <Button variant="destructive" onClick={handleDelete} disabled={loading}>
+                                {loading ? "Deleting..." : "Delete"}
+                            </Button>
+                        </DialogFooter>
+                    </DialogContent>
+                </Dialog>
+
                 <Dialog open={open} onOpenChange={(val) => {
                     setOpen(val);
                     if (!val) resetForm();
@@ -312,7 +350,12 @@ export function VocationalTab({ courses }: VocationalTabProps) {
                                         <TableCell>{course.category}</TableCell>
                                         <TableCell>{course.moduleCount}</TableCell>
                                         <TableCell className="text-right">
-                                            <Button variant="ghost" size="sm" onClick={() => handleEdit(course)}>Edit</Button>
+                                            <div className="flex justify-end gap-2">
+                                                <Button variant="ghost" size="sm" onClick={() => handleEdit(course)}>Edit</Button>
+                                                <Button variant="ghost" size="sm" className="text-destructive hover:text-destructive" onClick={() => setDeleteId(course.id)}>
+                                                    <Trash className="h-4 w-4" />
+                                                </Button>
+                                            </div>
                                         </TableCell>
                                     </TableRow>
                                 ))
