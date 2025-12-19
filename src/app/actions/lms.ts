@@ -174,6 +174,29 @@ export async function getCourse(id: string) {
     return course;
 }
 
+export async function deleteCourse(id: string) {
+    const session = await auth.api.getSession({
+        headers: await headers(),
+    });
+
+    if (!session || (session.user as any).role !== "SUPER_ADMIN") {
+        return { error: "Unauthorized" };
+    }
+
+    try {
+        await db.transaction(async (tx) => {
+            await tx.delete(modules).where(eq(modules.courseId, id));
+            await tx.delete(courses).where(eq(courses.id, id));
+        });
+
+        revalidatePath("/admin/content");
+        return { success: true };
+    } catch (error) {
+        console.error("Failed to delete course:", error);
+        return { error: "Failed to delete course" };
+    }
+}
+
 export async function getAlternateCourse(groupId: string, currentLanguage: string) {
     // Find a course with the same groupId but different language
     // Prefer user's likely alternate (e.g. if en, try ha/local? or just any other)
