@@ -1,10 +1,11 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { Download, Languages, Play } from "lucide-react";
-import { useRouter } from "next/navigation";
+import { Download, Languages } from "lucide-react";
 import { useLanguage } from "@/lib/i18n/language-context";
 import { toast } from "sonner";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import Link from "next/link";
 
 interface Module {
     id: string;
@@ -21,24 +22,41 @@ interface Course {
     modules: Module[];
 }
 
+interface Translation {
+    id: string;
+    language: string;
+    title: string;
+}
+
 interface CoursePlayerProps {
     course: Course;
-    alternateCourseId?: string;
+    translations?: Translation[];
     isPreview?: boolean;
 }
 
-export function CoursePlayer({ course, alternateCourseId, isPreview = false }: CoursePlayerProps) {
-    const router = useRouter();
+const LANGUAGE_LABELS: Record<string, string> = {
+    en: "English",
+    ha: "Hausa",
+    yo: "Yoruba",
+    ig: "Igbo",
+    pcm: "Pidgin",
+};
+
+function getYouTubeEmbedUrl(url: string) {
+    if (!url) return null;
+    const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=)([^#&?]*).*/;
+    const match = url.match(regExp);
+
+    if (match && match[2].length === 11) {
+        return `https://www.youtube.com/embed/${match[2]}`;
+    }
+    return null;
+}
+
+export function CoursePlayer({ course, translations = [], isPreview = false }: CoursePlayerProps) {
+
     const { t } = useLanguage();
     const activeModule = course.modules[0]; // Default to first module for now
-
-    const handleSwitchAudio = () => {
-        if (alternateCourseId) {
-            router.push(`/lms/${alternateCourseId}`);
-        } else {
-            toast.error(t("lms.noAlternateAudio"));
-        }
-    };
 
     const handleDownload = () => {
         if (isPreview) {
@@ -48,6 +66,9 @@ export function CoursePlayer({ course, alternateCourseId, isPreview = false }: C
         console.log("Downloading course:", course.title);
         toast.success(t("lms.downloadStarted"));
     };
+
+    // Sort translations: Current first, then others
+    const otherTranslations = translations.filter(t => t.id !== course.id);
 
     if (!activeModule) {
         return (
@@ -61,14 +82,24 @@ export function CoursePlayer({ course, alternateCourseId, isPreview = false }: C
         <div className="space-y-4">
             {/* Video Player */}
             <div className="relative aspect-video w-full overflow-hidden rounded-lg border bg-black shadow-sm">
-                <video
-                    src={activeModule.videoUrl}
-                    controls
-                    className="h-full w-full object-contain"
-                    poster={course.thumbnailUrl || undefined}
-                >
-                    Your browser does not support the video tag.
-                </video>
+                {getYouTubeEmbedUrl(activeModule.videoUrl) ? (
+                    <iframe
+                        src={getYouTubeEmbedUrl(activeModule.videoUrl)}
+                        className="h-full w-full"
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                        allowFullScreen
+                        title={activeModule.title}
+                    />
+                ) : (
+                    <video
+                        src={activeModule.videoUrl}
+                        controls
+                        className="h-full w-full object-contain"
+                        poster={course.thumbnailUrl || undefined}
+                    >
+                        Your browser does not support the video tag.
+                    </video>
+                )}
             </div>
 
             {/* Controls */}
@@ -81,11 +112,27 @@ export function CoursePlayer({ course, alternateCourseId, isPreview = false }: C
                 </div>
 
                 <div className="flex gap-2">
-                    <Button variant="outline" onClick={handleSwitchAudio}>
-                        <Languages className="mr-2 h-4 w-4" />
-                        {t("lms.switchAudio")}
-                    </Button>
-                    <Button variant="secondary" onClick={handleDownload}>
+                    {otherTranslations.length > 0 && (
+                        <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                                <Button variant="outline">
+                                    <Languages className="mr-2 h-4 w-4" />
+                                    {t("lms.switchAudio")}
+                                </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                                {translations.map((trans) => (
+                                    <DropdownMenuItem key={trans.id} asChild>
+                                        <Link href={`/lms/${trans.id}`} className="flex items-center justify-between w-full cursor-pointer">
+                                            <span>{LANGUAGE_LABELS[trans.language] || trans.language.toUpperCase()}</span>
+                                            {trans.id === course.id && <span className="ml-2 text-xs text-muted-foreground">({t("lms.current", "Current")})</span>}
+                                        </Link>
+                                    </DropdownMenuItem>
+                                ))}
+                            </DropdownMenuContent>
+                        </DropdownMenu>
+                    )}
+                    <Button variant="secondary" onClick={handleDownload} className="w-full sm:w-auto">
                         <Download className="mr-2 h-4 w-4" />
                         {t("lms.download")}
                     </Button>

@@ -1,21 +1,18 @@
-import { getAlternateCourse, getCourse } from "@/app/actions/lms";
+import { getCourseTranslations, getCourse } from "@/app/actions/lms";
 import { AuthActionButton } from "@/components/auth-action-button";
 import { CoursePlayer } from "@/components/course-player";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, PlayCircle } from "lucide-react";
+import { ArrowLeft, PlayCircle, Languages } from "lucide-react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
-type Course = {
-    id: string;
-    title: string;
-    description: string;
-    category: string;
-    language: string;
-    thumbnailUrl: string | null;
-    groupId: string;
-    modules: any[];
+const LANGUAGE_LABELS: Record<string, string> = {
+    en: "English",
+    ha: "Hausa",
+    yo: "Yoruba",
+    ig: "Igbo",
+    pcm: "Pidgin",
 };
 
 export default async function PublicCoursePage({ params }: { params: Promise<{ courseId: string }> }) {
@@ -26,8 +23,10 @@ export default async function PublicCoursePage({ params }: { params: Promise<{ c
         notFound();
     }
 
-    const alternateCourse = await getAlternateCourse(course.groupId, course.language);
-    const alternateCourseId = alternateCourse?.id;
+    const translations = await getCourseTranslations(course.groupId);
+
+    // Sort translations: Current first, then others
+    const otherTranslations = translations.filter(t => t.id !== course.id);
 
     return (
         <div className="min-h-screen bg-slate-50 pb-24">
@@ -42,12 +41,13 @@ export default async function PublicCoursePage({ params }: { params: Promise<{ c
                         <div className="flex-1 space-y-4">
                             <div className="flex items-center gap-2">
                                 <Badge>{course.category}</Badge>
-                                <Badge variant="outline">{course.language === 'en' ? 'English' : 'Hausa'}</Badge>
+                                <Badge variant="outline">{LANGUAGE_LABELS[course.language] || course.language.toUpperCase()}</Badge>
                             </div>
                             <h1 className="text-3xl md:text-4xl font-bold text-slate-900">{course.title}</h1>
                             <p className="text-lg text-slate-600 max-w-2xl">
                                 {course.description}
                             </p>
+
                             <div className="pt-4 hidden lg:block">
                                 <AuthActionButton
                                     dashboardUrl={`/dashboard/lms/${course.id}`}
@@ -63,7 +63,7 @@ export default async function PublicCoursePage({ params }: { params: Promise<{ c
                         <div className="w-full lg:w-[600px]">
                             <CoursePlayer
                                 course={course}
-                                alternateCourseId={alternateCourseId}
+                                translations={translations}
                                 isPreview={true}
                             />
                         </div>
@@ -76,24 +76,28 @@ export default async function PublicCoursePage({ params }: { params: Promise<{ c
                 <div className="max-w-3xl">
                     <h2 className="text-2xl font-bold mb-6">Course Content</h2>
                     <div className="space-y-4">
-                        {course.modules.map((module, index) => (
-                            <div key={module.id} className="flex items-center p-4 bg-white rounded-lg border hover:border-primary/50 transition-colors">
-                                <div className="flex-shrink-0 h-10 w-10 rounded-full bg-slate-100 flex items-center justify-center text-slate-500 font-medium mr-4">
-                                    {index + 1}
+                        {course.modules.length === 0 ? (
+                            <p className="text-muted-foreground italic">No content available for this language yet.</p>
+                        ) : (
+                            course.modules.map((module, index) => (
+                                <div key={module.id} className="flex items-center p-4 bg-white rounded-lg border hover:border-primary/50 transition-colors">
+                                    <div className="flex-shrink-0 h-10 w-10 rounded-full bg-slate-100 flex items-center justify-center text-slate-500 font-medium mr-4">
+                                        {index + 1}
+                                    </div>
+                                    <div className="flex-1">
+                                        <h3 className="font-medium text-slate-900">{module.title}</h3>
+                                        <p className="text-sm text-slate-500">{Math.round(module.duration / 60)} mins</p>
+                                    </div>
+                                    <AuthActionButton
+                                        dashboardUrl={`/dashboard/lms/${course.id}`}
+                                        variant="ghost"
+                                        size="sm"
+                                    >
+                                        <PlayCircle className="h-5 w-5 text-primary" />
+                                    </AuthActionButton>
                                 </div>
-                                <div className="flex-1">
-                                    <h3 className="font-medium text-slate-900">{module.title}</h3>
-                                    <p className="text-sm text-slate-500">{Math.round(module.duration / 60)} mins</p>
-                                </div>
-                                <AuthActionButton
-                                    dashboardUrl={`/dashboard/lms/${course.id}`}
-                                    variant="ghost"
-                                    size="sm"
-                                >
-                                    <PlayCircle className="h-5 w-5 text-primary" />
-                                </AuthActionButton>
-                            </div>
-                        ))}
+                            ))
+                        )}
                     </div>
                 </div>
             </div>
