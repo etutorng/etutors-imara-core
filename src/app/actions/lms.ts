@@ -209,6 +209,17 @@ export async function deleteCourse(id: string) {
     }
 }
 
+export async function getAlternateCourse(groupId: string, currentLanguage: string) {
+    // Find a course with the same groupId but different language
+    const alt = await db.query.courses.findFirst({
+        where: (courses, { and, eq, ne }) => and(
+            eq(courses.groupId, groupId),
+            ne(courses.language, currentLanguage)
+        ),
+    });
+    return alt;
+}
+
 export async function getCourseTranslations(groupId: string) {
     const translations = await db.query.courses.findMany({
         where: eq(courses.groupId, groupId),
