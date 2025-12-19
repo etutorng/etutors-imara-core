@@ -13,6 +13,8 @@ const createCourseSchema = z.object({
     description: z.string().min(1),
     category: z.string().min(1),
     thumbnailUrl: z.string().url().optional().or(z.literal("")),
+    language: z.string().default("en"),
+    groupId: z.string().optional(),
     modules: z.array(z.object({
         title: z.string().min(1),
         videoUrl: z.string().url(),
@@ -36,8 +38,10 @@ export async function createCourse(data: z.infer<typeof createCourseSchema>) {
                 description: data.description,
                 category: data.category,
                 thumbnailUrl: data.thumbnailUrl || null,
-                language: "en",
-                isMaster: true,
+                language: data.language,
+                // Only include groupId if provided, otherwise let DB generate default
+                ...(data.groupId ? { groupId: data.groupId } : {}),
+                isMaster: data.language === 'en', // Simple logic: English is master
             }).returning();
 
             if (data.modules.length > 0) {
@@ -125,23 +129,31 @@ export async function getVocationalCourses() {
     // Drizzle doesn't support count aggregation in query builder easily with relations yet in a single simple call without raw sql or separate queries usually.
     // But we can use `db.query` and map.
 
-    const masterCourses = await db.query.courses.findMany({
-        where: eq(courses.isMaster, true),
+    // Fetch all courses to map translations
+    const allCourses = await db.query.courses.findMany({
         with: {
             modules: true,
         },
         orderBy: (courses, { desc }) => [desc(courses.createdAt)],
     });
 
-    return masterCourses.map(course => ({
-        ...course,
-        moduleCount: course.modules.length,
-    }));
+    const masterCourses = allCourses.filter(c => c.isMaster);
+
+    return masterCourses.map(master => {
+        const translations = allCourses.filter(c => c.groupId === master.groupId && c.id !== master.id);
+
+        return {
+            ...master,
+            moduleCount: master.modules.length,
+            translations: translations.map(t => ({
+                ...t,
+                moduleCount: t.modules.length,
+                // We'll need modules for editing, already in 'allCourses' which has 'with modules'
+            }))
+        };
+    });
     // ... existing code ...
-    return masterCourses.map(course => ({
-        ...course,
-        moduleCount: course.modules.length,
-    }));
+
 }
 
 export async function getCourses() {

@@ -37,6 +37,9 @@ interface Course {
     category: string;
     thumbnailUrl: string | null;
     moduleCount: number;
+    language: string;
+    groupId: string;
+    translations?: Course[];
 }
 
 interface VocationalTabProps {
@@ -49,15 +52,21 @@ export function VocationalTab({ courses }: VocationalTabProps) {
     const [loading, setLoading] = useState(false);
     const [editingId, setEditingId] = useState<string | null>(null);
 
-    // Form State (extended for edit)
+    // Form State
     const [title, setTitle] = useState("");
     const [description, setDescription] = useState("");
     const [category, setCategory] = useState("");
     const [thumbnailUrl, setThumbnailUrl] = useState("");
+    const [language, setLanguage] = useState("en");
+    const [groupId, setGroupId] = useState<string | undefined>(undefined);
+
     const [modules, setModules] = useState<{ title: string; videoUrl: string; duration: number }[]>([]);
     const [currentModule, setCurrentModule] = useState({ title: "", videoUrl: "", duration: 0 });
 
     const [editingModuleIndex, setEditingModuleIndex] = useState<number | null>(null);
+
+    // Check if we are adding a translation (group ID set, not editing same ID)
+    const isAddingTranslation = !!groupId && !editingId;
 
     // Upload States
     const [isUploadingThumbnail, setIsUploadingThumbnail] = useState(false);
@@ -70,6 +79,8 @@ export function VocationalTab({ courses }: VocationalTabProps) {
         setDescription("");
         setCategory("");
         setThumbnailUrl("");
+        setLanguage("en");
+        setGroupId(undefined);
         setModules([]);
         setCurrentModule({ title: "", videoUrl: "", duration: 0 });
         setEditingModuleIndex(null);
@@ -82,9 +93,20 @@ export function VocationalTab({ courses }: VocationalTabProps) {
         setDescription(course.description);
         setCategory(course.category);
         setThumbnailUrl(course.thumbnailUrl || "");
+        setLanguage(course.language || "en");
+        setGroupId(course.groupId);
         setModules(course.modules?.map((m: any) => ({ title: m.title, videoUrl: m.videoUrl, duration: m.duration || 0 })) || []);
 
         setStep(1);
+        setOpen(true);
+    };
+
+    const handleAddTranslation = (masterCourse: Course) => {
+        resetForm();
+        setGroupId(masterCourse.groupId);
+        setCategory(masterCourse.category); // Pre-fill category
+        setThumbnailUrl(masterCourse.thumbnailUrl || ""); // Pre-fill thumbnail
+        setLanguage("ha"); // Default to Hausa for now
         setOpen(true);
     };
 
@@ -98,7 +120,7 @@ export function VocationalTab({ courses }: VocationalTabProps) {
             } else {
                 setModules([...modules, currentModule]);
             }
-            setCurrentModule({ title: "", videoUrl: "" });
+            setCurrentModule({ title: "", videoUrl: "", duration: 0 });
         }
     };
 
@@ -142,7 +164,6 @@ export function VocationalTab({ courses }: VocationalTabProps) {
         const module = modules[index];
         setCurrentModule(module);
         setEditingModuleIndex(index);
-        // Determine video source type based on URL (simple heuristic)
         if (module.videoUrl.startsWith("/uploads")) {
             setVideoSourceType("upload");
         } else {
@@ -156,7 +177,7 @@ export function VocationalTab({ courses }: VocationalTabProps) {
         setModules(newModules);
         if (editingModuleIndex === index) {
             setEditingModuleIndex(null);
-            setCurrentModule({ title: "", videoUrl: "" });
+            setCurrentModule({ title: "", videoUrl: "", duration: 0 });
         }
     };
 
@@ -171,6 +192,7 @@ export function VocationalTab({ courses }: VocationalTabProps) {
                     category,
                     thumbnailUrl,
                     modules,
+                    // Note: Language and GroupID typically don't change on edit
                 });
             } else {
                 result = await createCourse({
@@ -178,6 +200,8 @@ export function VocationalTab({ courses }: VocationalTabProps) {
                     description,
                     category,
                     thumbnailUrl,
+                    language,
+                    groupId,
                     modules,
                 });
             }
@@ -247,7 +271,14 @@ export function VocationalTab({ courses }: VocationalTabProps) {
                     </DialogTrigger>
                     <DialogContent className="max-w-2xl">
                         <DialogHeader>
-                            <DialogTitle>{editingId ? "Edit Vocational Course" : "Create Vocational Course"}</DialogTitle>
+                            <DialogTitle>
+                                {editingId
+                                    ? "Edit Vocational Course"
+                                    : isAddingTranslation
+                                        ? "Add Translation"
+                                        : "Create Vocational Course"
+                                }
+                            </DialogTitle>
                             <DialogDescription>
                                 {editingId ? "Edit course details and modules." : "Add a new vocational course with modules."}
                             </DialogDescription>
@@ -255,28 +286,53 @@ export function VocationalTab({ courses }: VocationalTabProps) {
 
                         {step === 1 && (
                             <div className="space-y-4 py-4">
+                                <div className="grid grid-cols-2 gap-4">
+                                    <div className="space-y-2">
+                                        <Label>Language</Label>
+                                        <Select
+                                            value={language}
+                                            onValueChange={setLanguage}
+                                            disabled={!!editingId && language === 'en'} // Lock EN if editing master (simplification)
+                                        >
+                                            <SelectTrigger>
+                                                <SelectValue placeholder="Select language" />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                <SelectItem value="en">English (Default)</SelectItem>
+                                                <SelectItem value="ha">Hausa</SelectItem>
+                                                <SelectItem value="yo">Yoruba</SelectItem>
+                                                <SelectItem value="ig">Igbo</SelectItem>
+                                                <SelectItem value="pidgin">Pidgin</SelectItem>
+                                            </SelectContent>
+                                        </Select>
+                                        {isAddingTranslation && (
+                                            <p className="text-xs text-muted-foreground">Adding translation to existing group.</p>
+                                        )}
+                                    </div>
+                                    <div className="space-y-2">
+                                        <Label>Category</Label>
+                                        <Select value={category} onValueChange={setCategory}>
+                                            <SelectTrigger>
+                                                <SelectValue placeholder="Select category" />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                <SelectItem value="Fashion">Fashion</SelectItem>
+                                                <SelectItem value="Digital Skills">Digital Skills</SelectItem>
+                                                <SelectItem value="Agriculture">Agriculture</SelectItem>
+                                                <SelectItem value="Catering">Catering</SelectItem>
+                                            </SelectContent>
+                                        </Select>
+                                    </div>
+                                </div>
                                 <div className="space-y-2">
-                                    <Label>Title (English Master)</Label>
-                                    <Input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="e.g. Intro to Fashion Design" />
+                                    <Label>Title</Label>
+                                    <Input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Course Title" />
                                 </div>
                                 <div className="space-y-2">
                                     <Label>Description</Label>
                                     <Textarea value={description} onChange={(e) => setDescription(e.target.value)} placeholder="Course description..." />
                                 </div>
-                                <div className="space-y-2">
-                                    <Label>Category</Label>
-                                    <Select value={category} onValueChange={setCategory}>
-                                        <SelectTrigger>
-                                            <SelectValue placeholder="Select category" />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            <SelectItem value="Fashion">Fashion</SelectItem>
-                                            <SelectItem value="Digital Skills">Digital Skills</SelectItem>
-                                            <SelectItem value="Agriculture">Agriculture</SelectItem>
-                                            <SelectItem value="Catering">Catering</SelectItem>
-                                        </SelectContent>
-                                    </Select>
-                                </div>
+
                                 <div className="space-y-2">
                                     <Label>Thumbnail Image</Label>
                                     <div className="flex items-start gap-4">
@@ -443,7 +499,7 @@ export function VocationalTab({ courses }: VocationalTabProps) {
                                 <Button onClick={() => setStep(2)} disabled={!title || !category}>Next: Modules</Button>
                             ) : (
                                 <Button onClick={handleSubmit} disabled={loading || modules.length === 0}>
-                                    {loading ? "{editingId ? 'Updating...' : 'Creating...'}" : editingId ? "Update Course" : "Create Course"}
+                                    {loading ? (editingId ? "Updating..." : "Creating...") : (editingId ? "Update Course" : "Create Course")}
                                 </Button>
                             )}
                         </DialogFooter>
@@ -463,13 +519,14 @@ export function VocationalTab({ courses }: VocationalTabProps) {
                                 <TableHead>Title</TableHead>
                                 <TableHead>Category</TableHead>
                                 <TableHead>Modules</TableHead>
+                                <TableHead>Translations</TableHead>
                                 <TableHead className="text-right">Actions</TableHead>
                             </TableRow>
                         </TableHeader>
                         <TableBody>
                             {courses.length === 0 ? (
                                 <TableRow>
-                                    <TableCell colSpan={5} className="text-center h-24 text-muted-foreground">
+                                    <TableCell colSpan={6} className="text-center h-24 text-muted-foreground">
                                         No courses found.
                                     </TableCell>
                                 </TableRow>
@@ -483,9 +540,40 @@ export function VocationalTab({ courses }: VocationalTabProps) {
                                                 <div className="h-10 w-16 bg-muted rounded flex items-center justify-center text-xs">No Img</div>
                                             )}
                                         </TableCell>
-                                        <TableCell className="font-medium">{course.title}</TableCell>
+                                        <TableCell className="font-medium">
+                                            <div>{course.title}</div>
+                                            <div className="text-xs text-muted-foreground">Master (English)</div>
+                                        </TableCell>
                                         <TableCell>{course.category}</TableCell>
                                         <TableCell>{course.moduleCount}</TableCell>
+                                        <TableCell>
+                                            <div className="flex flex-wrap gap-1">
+                                                {/* Master Badge */}
+                                                <div className="px-2 py-0.5 rounded-full bg-primary/10 text-primary text-xs font-medium border border-primary/20">
+                                                    EN
+                                                </div>
+                                                {/* Translations */}
+                                                {(course as any).translations?.map((t: any) => (
+                                                    <button
+                                                        key={t.id}
+                                                        onClick={() => handleEdit(t)}
+                                                        className="px-2 py-0.5 rounded-full bg-secondary text-secondary-foreground text-xs font-medium hover:bg-secondary/80 transition-colors"
+                                                    >
+                                                        {t.language.toUpperCase()}
+                                                    </button>
+                                                ))}
+                                                {/* Add Translation Button */}
+                                                <Button
+                                                    variant="outline"
+                                                    size="sm"
+                                                    className="h-5 w-5 rounded-full p-0"
+                                                    onClick={() => handleAddTranslation(course)}
+                                                    title="Add Translation"
+                                                >
+                                                    <Plus className="h-3 w-3" />
+                                                </Button>
+                                            </div>
+                                        </TableCell>
                                         <TableCell className="text-right">
                                             <div className="flex justify-end gap-2">
                                                 <Button variant="ghost" size="sm" onClick={() => handleEdit(course)}>Edit</Button>
