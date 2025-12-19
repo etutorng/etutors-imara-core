@@ -11,6 +11,7 @@ import {
     Settings,
     MessageCircle,
     User,
+    GraduationCap,
 } from "lucide-react";
 
 interface SidebarNavProps extends React.HTMLAttributes<HTMLElement> {
@@ -51,10 +52,10 @@ export function SidebarNav({ className, role, onLinkClick, ...props }: SidebarNa
             roles: ["SUPER_ADMIN", "LEGAL_PARTNER"],
         },
         {
-            href: "/admin/settings",
-            label: "Settings",
-            icon: Settings,
-            active: pathname === "/admin/settings",
+            href: "/admin/scholarship",
+            label: "Scholarships",
+            icon: GraduationCap,
+            active: pathname === "/admin/scholarship",
             roles: ["SUPER_ADMIN"],
         },
         {
@@ -70,6 +71,13 @@ export function SidebarNav({ className, role, onLinkClick, ...props }: SidebarNa
             icon: User,
             active: pathname === "/admin/profile",
             roles: ["SUPER_ADMIN", "CONTENT_EDITOR", "LEGAL_PARTNER", "COUNSELLOR"],
+        },
+        {
+            href: "/admin/settings",
+            label: "Settings",
+            icon: Settings,
+            active: pathname === "/admin/settings",
+            roles: ["SUPER_ADMIN"],
         },
     ];
 

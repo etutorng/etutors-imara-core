@@ -46,6 +46,25 @@ export const pagesTranslations = {
         "resources.visitResource": "Visit Resource",
         "resources.noResources": "No resources found.",
 
+        // Scholarship
+        "scholarship.title": "Scholarship & Digital Skills",
+        "scholarship.description": "Apply for our digital skills acquisition program and scholarship opportunities.",
+        "scholarship.form.title": "Application Form",
+        "scholarship.form.fullName": "Full Name",
+        "scholarship.form.email": "Email Address",
+        "scholarship.form.phone": "Phone Number",
+        "scholarship.form.state": "State of Origin",
+        "scholarship.form.lga": "Local Government Area",
+        "scholarship.form.qualification": "Highest Qualification",
+        "scholarship.form.skill": "Digital Skill of Interest",
+        "scholarship.form.certificate": "Upload your Certificate",
+        "scholarship.form.essay": "Why do you want this scholarship?",
+        "scholarship.form.submit": "Submit Application",
+        "scholarship.form.submitting": "Submitting...",
+        "scholarship.form.success": "Application submitted successfully! We will contact you soon.",
+        "scholarship.form.error": "Failed to submit application. Please try again.",
+        "scholarship.olevel.required": "minimum certificate is O-level",
+
         // BottomNav
         "bottomnav.home": "Home",
         "bottomnav.legal": "Legal",
@@ -211,6 +230,24 @@ export const pagesTranslations = {
         "resources.visitResource": "Ziyarci Albarkatun",
         "resources.noResources": "Ba a sami albarkatu ba.",
 
+        // Scholarship
+        "scholarship.title": "Gurabun Karatu & Ƙwarewar Dijital",
+        "scholarship.description": "Nemi shirinmu na samun ƙwarewar dijital da damar gurabun karatu.",
+        "scholarship.form.title": "Fom ɗin Nema",
+        "scholarship.form.fullName": "Cikakken Suna",
+        "scholarship.form.email": "Adireshin Imel",
+        "scholarship.form.phone": "Lambar Waya",
+        "scholarship.form.state": "Jihar Asali",
+        "scholarship.form.lga": "Ƙaramar Hukuma",
+        "scholarship.form.qualification": "Mafi Girman cancanta",
+        "scholarship.form.skill": "Ƙwarewar Dijital da kuke So",
+        "scholarship.form.essay": "Me yasa kuke son wannan gurabun karatu?",
+        "scholarship.form.submit": "Aika Aikace-aikacen",
+        "scholarship.form.submitting": "Ana Aikawa...",
+        "scholarship.form.success": "An aika aikace-aikacen cikin nasara! Za mu tuntuɓe ku nan ba da jimawa ba.",
+        "scholarship.form.error": "An kasa aika aikace-aikacen. Don Allah sake gwadawa.",
+        "scholarship.olevel.required": "Ana buƙatar Takardar O-Level don wannan aikace-aikacen.",
+
         // BottomNav
         "bottomnav.home": "Gida",
         "bottomnav.legal": "Shari'a",
@@ -274,6 +311,24 @@ export const pagesTranslations = {
         "resources.description": "Njikọ ahaziri maka akụrụngwa echekwara maka ọdịmma gị.",
         "resources.visitResource": "Gaa Akụrụngwa",
         "resources.noResources": "Achọtaghị akụrụngwa.",
+
+        // Scholarship
+        "scholarship.title": "Ohere Ọmụmụ & Nkà Dijitalụ",
+        "scholarship.description": "Tinye akwụkwọ maka mmemme inweta nkà dijitalụ anyị na ohere mmụta.",
+        "scholarship.form.title": "Fọm Ngwa",
+        "scholarship.form.fullName": "Aha Zuru Ezu",
+        "scholarship.form.email": "Adreesị Ozi-e",
+        "scholarship.form.phone": "Nọmba Ekwentị",
+        "scholarship.form.state": "Steeti Onye",
+        "scholarship.form.lga": "Gọọmentị Ime Obodo",
+        "scholarship.form.qualification": "Ntozu Kachasị Elu",
+        "scholarship.form.skill": "Nkà Dijitalụ Mmasị",
+        "scholarship.form.essay": "Gịnị mere ị ji chọọ ohere ọmụmụ a?",
+        "scholarship.form.submit": "Nyefee Ngwa",
+        "scholarship.form.submitting": "Na-enyefee...",
+        "scholarship.form.success": "Enyefela ngwa nke ọma! Anyị ga-akpọtụrụ gị n'oge adịghị anya.",
+        "scholarship.form.error": "E nweghị ike inyefee ngwa. Biko nwaa ọzọ.",
+        "scholarship.olevel.required": "Achọrọ asambodo O-Level maka ngwa a.",
 
         // BottomNav
         "bottomnav.home": "Ụlọ",
@@ -339,6 +394,24 @@ export const pagesTranslations = {
         "resources.visitResource": "Ṣabẹwo si Ohun Elo",
         "resources.noResources": "Ko ri awọn ohun elo.",
 
+        // Scholarship
+        "scholarship.title": "Sikolashibu & Awọn Ọgbọn Oni-nọmba",
+        "scholarship.description": "Wayi fun eto gbigba awọn ọgbọn oni-nọmba wa ati awọn anfani sikolashibu.",
+        "scholarship.form.title": "Fọọmu Ohun elo",
+        "scholarship.form.fullName": "Orukọ Kikun",
+        "scholarship.form.email": "Adirẹsi Imeeli",
+        "scholarship.form.phone": "Nọmba Foonu",
+        "scholarship.form.state": "Ipinle ti Oti",
+        "scholarship.form.lga": "Agbegbe Ijọba Ibilẹ",
+        "scholarship.form.qualification": "Iwe-ẹri Ti O Ga Julọ",
+        "scholarship.form.skill": "Ọgbọn Oni-nọmba ti O nifẹ si",
+        "scholarship.form.essay": "Kini idi ti o fi fẹ sikolashibu yii?",
+        "scholarship.form.submit": "Fi Ohun elo Silẹ",
+        "scholarship.form.submitting": "N fi silẹ...",
+        "scholarship.form.success": "Ohun elo ti fi silẹ ni aṣeyọri! A yoo kan si ọ laipẹ.",
+        "scholarship.form.error": "Kuna lati fi ohun elo silẹ. Jọwọ gbiyanju lẹẹkansi.",
+        "scholarship.olevel.required": "A nilo Iwe-ẹri O-Level fun ohun elo yii.",
+
         // BottomNav
         "bottomnav.home": "Ilé",
         "bottomnav.legal": "Ofin",
@@ -402,6 +475,24 @@ export const pagesTranslations = {
         "resources.description": "Curated links to safe, checked resources for your well-being.",
         "resources.visitResource": "Visit Resource",
         "resources.noResources": "We no find any resources.",
+
+        // Scholarship
+        "scholarship.title": "Scholarship & Digital Skills",
+        "scholarship.description": "Apply for our digital skills acquisition program and scholarship opportunities.",
+        "scholarship.form.title": "Application Form",
+        "scholarship.form.fullName": "Full Name",
+        "scholarship.form.email": "Email Address",
+        "scholarship.form.phone": "Phone Number",
+        "scholarship.form.state": "State of Origin",
+        "scholarship.form.lga": "Local Government Area",
+        "scholarship.form.qualification": "Highest Qualification",
+        "scholarship.form.skill": "Digital Skill of Interest",
+        "scholarship.form.essay": "Why you want dis scholarship?",
+        "scholarship.form.submit": "Submit Application",
+        "scholarship.form.submitting": "Dey Submit...",
+        "scholarship.form.success": "Application don submit well! We go contact you soon.",
+        "scholarship.form.error": "Application no gree submit. Abeg try again.",
+        "scholarship.olevel.required": "We need your O-Level Certificate for dis application.",
 
         // BottomNav
         "bottomnav.home": "Home",

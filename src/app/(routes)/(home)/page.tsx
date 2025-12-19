@@ -48,6 +48,13 @@ export default function HomePage() {
       variant: "accent" as const,
       href: "/resources",
     },
+    {
+      icon: GraduationCap,
+      title: t("home.feature.scholarship.title"),
+      description: t("home.feature.scholarship.description"),
+      variant: "primary" as const,
+      href: "/scholarship",
+    },
   ];
 
   const stats = [

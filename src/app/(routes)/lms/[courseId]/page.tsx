@@ -1,16 +1,11 @@
-"use client";
-
 import { getAlternateCourse, getCourse } from "@/app/actions/lms";
 import { AuthActionButton } from "@/components/auth-action-button";
 import { CoursePlayer } from "@/components/course-player";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardFooter } from "@/components/ui/card";
-import { useLanguage } from "@/lib/i18n/language-context";
-import { ArrowLeft, Clock, PlayCircle } from "lucide-react";
+import { ArrowLeft, PlayCircle } from "lucide-react";
 import Link from "next/link";
-import { useParams } from "next/navigation";
-import { useEffect, useState } from "react";
+import { notFound } from "next/navigation";
 
 type Course = {
     id: string;
@@ -23,50 +18,16 @@ type Course = {
     modules: any[];
 };
 
-export default function PublicCoursePage() {
-    const { t } = useLanguage();
-    const params = useParams();
-    const courseId = params.courseId as string;
-    const [course, setCourse] = useState<Course | null>(null);
-    const [alternateCourseId, setAlternateCourseId] = useState<string | undefined>(undefined);
-    const [loading, setLoading] = useState(true);
-
-    useEffect(() => {
-        async function loadCourse() {
-            try {
-                const data = await getCourse(courseId);
-                setCourse(data);
-                if (data) {
-                    const alt = await getAlternateCourse(data.groupId, data.language);
-                    setAlternateCourseId(alt?.id);
-                }
-            } catch (error) {
-                console.error("Failed to load course:", error);
-            } finally {
-                setLoading(false);
-            }
-        }
-        loadCourse();
-    }, [courseId]);
-
-    if (loading) {
-        return (
-            <div className="container mx-auto p-4 py-12 text-center text-muted-foreground">
-                {t("common.loading")}
-            </div>
-        );
-    }
-
+export default async function PublicCoursePage({ params }: { params: { courseId: string } }) {
+    const courseId = params.courseId;
+    
+    const course = await getCourse(courseId);
     if (!course) {
-        return (
-            <div className="container mx-auto p-4 py-12 text-center">
-                <h1 className="text-2xl font-bold mb-4">Course Not Found</h1>
-                <Link href="/lms">
-                    <Button variant="outline">Back to Courses</Button>
-                </Link>
-            </div>
-        );
+        notFound();
     }
+    
+    const alternateCourse = await getAlternateCourse(course.groupId, course.language);
+    const alternateCourseId = alternateCourse?.id;
 
     return (
         <div className="min-h-screen bg-slate-50 pb-24">
