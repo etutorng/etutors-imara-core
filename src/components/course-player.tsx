@@ -18,6 +18,7 @@ interface Course {
     id: string;
     title: string;
     description: string;
+    thumbnailUrl: string | null;
     language: string;
     modules: Module[];
 }
@@ -60,10 +61,19 @@ export function CoursePlayer({ course, translations = [], isPreview = false }: C
 
     const handleDownload = () => {
         if (isPreview) {
-            toast.error(t("lms.signupToAccess", "Sign up to download lessons"));
+            toast.error(t("lms.signupToAccess"));
             return;
         }
-        console.log("Downloading course:", course.title);
+
+        // Trigger download
+        const link = document.createElement('a');
+        link.href = activeModule.videoUrl;
+        link.download = activeModule.title || 'video';
+        link.target = "_blank"; // Fallback for some browsers
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+
         toast.success(t("lms.downloadStarted"));
     };
 
@@ -125,17 +135,19 @@ export function CoursePlayer({ course, translations = [], isPreview = false }: C
                                     <DropdownMenuItem key={trans.id} asChild>
                                         <Link href={`/lms/${trans.id}`} className="flex items-center justify-between w-full cursor-pointer">
                                             <span>{LANGUAGE_LABELS[trans.language] || trans.language.toUpperCase()}</span>
-                                            {trans.id === course.id && <span className="ml-2 text-xs text-muted-foreground">({t("lms.current", "Current")})</span>}
+                                            {trans.id === course.id && <span className="ml-2 text-xs text-muted-foreground">({t("lms.current")})</span>}
                                         </Link>
                                     </DropdownMenuItem>
                                 ))}
                             </DropdownMenuContent>
                         </DropdownMenu>
                     )}
-                    <Button variant="secondary" onClick={handleDownload} className="w-full sm:w-auto">
-                        <Download className="mr-2 h-4 w-4" />
-                        {t("lms.download")}
-                    </Button>
+                    {!getYouTubeEmbedUrl(activeModule.videoUrl) && (
+                        <Button variant="secondary" onClick={handleDownload} className="w-full sm:w-auto">
+                            <Download className="mr-2 h-4 w-4" />
+                            {t("lms.download")}
+                        </Button>
+                    )}
                 </div>
             </div>
 
@@ -147,3 +159,4 @@ export function CoursePlayer({ course, translations = [], isPreview = false }: C
         </div>
     );
 }
+
