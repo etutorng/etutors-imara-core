@@ -30,7 +30,27 @@ export async function proxy(request: NextRequest) {
 
     if (isAuthRoute()) {
         if (sessionCookie) {
-            return NextResponse.redirect(new URL(DEFAULT_LOGIN_REDIRECT, request.url));
+            // Verify the session is actually valid before redirecting
+            try {
+                const fetchUrl = process.env.NODE_ENV === "production"
+                    ? "http://127.0.0.1:3000/api/auth/get-session"
+                    : `${request.nextUrl.origin}/api/auth/get-session`;
+
+                const res = await fetch(fetchUrl, {
+                    headers: {
+                        cookie: request.headers.get("cookie") || "",
+                    },
+                });
+                const sessionData = await res.json();
+
+                // Only redirect if session is valid and user exists
+                if (sessionData && sessionData.user) {
+                    return NextResponse.redirect(new URL(DEFAULT_LOGIN_REDIRECT, request.url));
+                }
+            } catch (error) {
+                console.error("Session validation error:", error);
+                // If session validation fails, allow access to auth routes
+            }
         }
         return NextResponse.next();
     }

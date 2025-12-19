@@ -40,7 +40,7 @@ import { formatDistanceToNow } from "date-fns";
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Card } from "@/components/ui/card";
-import { Phone, Mail, User as UserIcon } from "lucide-react";
+import { Phone, Mail, User as UserIcon, ArrowLeft } from "lucide-react";
 
 interface Ticket {
     id: string;
@@ -71,6 +71,7 @@ const statusColors: Record<string, "default" | "secondary" | "destructive" | "ou
 };
 
 export function LegalCaseTable({ tickets }: LegalCaseTableProps) {
+    const [viewMode, setViewMode] = useState<"details" | "chat">("details");
     const [updating, setUpdating] = useState<string | null>(null);
     const [selectedTicket, setSelectedTicket] = useState<Ticket | null>(null);
     const [replies, setReplies] = useState<any[]>([]);
@@ -97,6 +98,7 @@ export function LegalCaseTable({ tickets }: LegalCaseTableProps) {
 
     const handleViewDetails = async (ticket: Ticket) => {
         setSelectedTicket(ticket);
+        setViewMode("details");
         setLoadingReplies(true);
         try {
             const data = await getTicketReplies(ticket.id);
@@ -131,15 +133,27 @@ export function LegalCaseTable({ tickets }: LegalCaseTableProps) {
     return (
         <div className="rounded-md border bg-card">
             <Dialog open={!!selectedTicket} onOpenChange={(val) => !val && setSelectedTicket(null)}>
-                <DialogContent className="max-w-4xl h-[90vh] flex flex-col p-0 gap-0 overflow-hidden">
+                <DialogContent className="max-w-3xl h-[85vh] flex flex-col p-0 gap-0 overflow-hidden">
                     <div className="p-6 border-b bg-muted/20">
                         <DialogHeader>
-                            <DialogTitle className="flex items-center gap-2 text-xl">
-                                Case #{selectedTicket?.id.slice(0, 8)}
-                                <Badge variant={selectedTicket ? statusColors[selectedTicket.status] : "default"} className="uppercase text-xs">
-                                    {selectedTicket?.status.replace("_", " ")}
-                                </Badge>
-                            </DialogTitle>
+                            <div className="flex items-center justify-between">
+                                <DialogTitle className="flex items-center gap-2 text-xl">
+                                    {viewMode === "chat" && (
+                                        <Button variant="ghost" size="icon" onClick={() => setViewMode("details")} className="mr-2 h-8 w-8">
+                                            <ArrowLeft className="h-4 w-4" />
+                                        </Button>
+                                    )}
+                                    Case #{selectedTicket?.id.slice(0, 8)}
+                                    <Badge variant={selectedTicket ? statusColors[selectedTicket.status] : "default"} className="uppercase text-xs">
+                                        {selectedTicket?.status.replace("_", " ")}
+                                    </Badge>
+                                </DialogTitle>
+                                {viewMode === "details" && selectedTicket && (
+                                    <Button size="sm" onClick={() => setViewMode("chat")} className="gap-2">
+                                        <MessageSquare className="h-4 w-4" /> Open Chat
+                                    </Button>
+                                )}
+                            </div>
                             <DialogDescription>
                                 Created {selectedTicket && formatDistanceToNow(new Date(selectedTicket.createdAt), { addSuffix: true })}
                             </DialogDescription>
@@ -148,127 +162,134 @@ export function LegalCaseTable({ tickets }: LegalCaseTableProps) {
 
                     {selectedTicket && (
                         <div className="flex flex-1 overflow-hidden">
-                            {/* Sidebar: User Info & Case Details */}
-                            <div className="w-1/3 border-r bg-muted/10 p-4 space-y-6 overflow-y-auto">
-                                <div>
-                                    <h3 className="font-semibold mb-3 text-sm uppercase tracking-wider text-muted-foreground">Reported By</h3>
-                                    {selectedTicket.user ? (
-                                        <div className="flex items-start gap-3">
-                                            <Avatar className="h-10 w-10 border">
-                                                <AvatarImage src={selectedTicket.user.image || ""} />
-                                                <AvatarFallback>{selectedTicket.user.name.charAt(0)}</AvatarFallback>
-                                            </Avatar>
-                                            <div className="space-y-1">
-                                                <div className="font-medium">{selectedTicket.user.name}</div>
-                                                <div className="text-sm text-muted-foreground flex items-center gap-1">
-                                                    <Mail className="h-3 w-3" /> {selectedTicket.user.email}
-                                                </div>
-                                                {selectedTicket.user.phoneNumber && (
-                                                    <div className="text-sm text-muted-foreground flex items-center gap-1">
-                                                        <Phone className="h-3 w-3" /> {selectedTicket.user.phoneNumber}
-                                                    </div>
-                                                )}
-                                            </div>
-                                        </div>
-                                    ) : (
-                                        <div className="flex items-center gap-2 text-muted-foreground italic">
-                                            <UserIcon className="h-4 w-4" /> Anonymous User
-                                        </div>
-                                    )}
-                                </div>
-
-                                <div className="space-y-1">
-                                    <h3 className="font-semibold mb-2 text-sm uppercase tracking-wider text-muted-foreground">Case Description</h3>
-                                    <Card className="p-3 bg-background border shadow-sm">
-                                        <p className="text-sm whitespace-pre-wrap leading-relaxed">{selectedTicket.description}</p>
-                                    </Card>
-                                </div>
-
-                                <div>
-                                    <h3 className="font-semibold mb-2 text-sm uppercase tracking-wider text-muted-foreground">Category</h3>
-                                    <Badge variant="outline" className="text-sm py-1 px-3">
-                                        {selectedTicket.category}
-                                    </Badge>
-                                </div>
-                            </div>
-
-                            {/* Main: Chat */}
-                            <div className="flex-1 flex flex-col bg-background min-w-0">
-                                <div className="p-3 border-b bg-muted/5 text-sm font-medium flex justify-between items-center sticky top-0 z-10 glass">
-                                    <div className="flex items-center gap-2">
-                                        <MessageSquare className="h-4 w-4" /> Secure Communication Channel
-                                    </div>
-                                </div>
-                                <ScrollArea className="flex-1 p-4 bg-muted/5">
+                            {viewMode === "details" ? (
+                                <ScrollArea className="flex-1 p-6">
                                     <div className="space-y-6">
-                                        {loadingReplies ? (
-                                            <div className="flex justify-center p-8">
-                                                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+                                        <div className="flex items-start gap-4 p-4 border rounded-lg bg-muted/10">
+                                            <Avatar className="h-16 w-16 border-2 border-background shadow-sm">
+                                                <AvatarImage src={selectedTicket.user?.image || ""} />
+                                                <AvatarFallback className="text-lg">{selectedTicket.user?.name.charAt(0) || "?"}</AvatarFallback>
+                                            </Avatar>
+                                            <div className="space-y-1 flex-1">
+                                                <h3 className="font-semibold text-lg">{selectedTicket.user?.name || "Anonymous User"}</h3>
+                                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-sm text-muted-foreground mt-2">
+                                                    <div className="flex items-center gap-2">
+                                                        <Mail className="h-3 w-3" /> {selectedTicket.user?.email || "N/A"}
+                                                    </div>
+                                                    {selectedTicket.user?.phoneNumber && (
+                                                        <div className="flex items-center gap-2">
+                                                            <Phone className="h-3 w-3" /> {selectedTicket.user.phoneNumber}
+                                                        </div>
+                                                    )}
+                                                    <div className="flex items-center gap-2 capitalize">
+                                                        <UserIcon className="h-3 w-3" /> {selectedTicket.user ? "Registered User" : "Guest"}
+                                                    </div>
+                                                </div>
                                             </div>
-                                        ) : replies.length === 0 ? (
-                                            <div className="text-center text-muted-foreground py-10 space-y-2">
-                                                <MessageSquare className="h-10 w-10 mx-auto opacity-20" />
-                                                <p>No messages yet. Start the secure conversation.</p>
-                                            </div>
-                                        ) : (
-                                            replies.map((reply) => {
-                                                const isAdmin = !!reply.senderId; // Determine logic better if needed, but for now assumption stands as replies here are from db
-                                                // Wait, we need to know who is who. 
-                                                // Actually, if I am the admin viewing this, my messages are "me".
-                                                // But usually standard is: System/Support (Right), User (Left).
-                                                // Let's assume replies from the Ticket User are left, Admin (Me/Colleagues) are right.
-                                                // Since we don't have current user ID easily here without props/context, 
-                                                // we can infer: if senderId === selectedTicket.userId, it's the User (Left).
+                                        </div>
 
-                                                const isUser = reply.senderId === selectedTicket.userId;
+                                        <div className="space-y-2">
+                                            <h4 className="text-sm font-medium text-muted-foreground uppercase tracking-wider">Description</h4>
+                                            <Card className="p-4 bg-muted/5 border-none shadow-inner">
+                                                <p className="whitespace-pre-wrap leading-relaxed text-sm">{selectedTicket.description}</p>
+                                            </Card>
+                                        </div>
 
-                                                return (
-                                                    <div key={reply.id} className={cn("flex w-full", isUser ? "justify-start" : "justify-end")}>
+                                        <div className="pt-4 border-t">
+                                            <h4 className="text-sm font-medium text-muted-foreground uppercase tracking-wider mb-4">Latest Activity</h4>
+                                            {loadingReplies ? (
+                                                <div className="text-sm text-muted-foreground animate-pulse">Checking for updates...</div>
+                                            ) : replies.length > 0 ? (
+                                                <div
+                                                    className="p-4 rounded-lg border bg-muted/5 cursor-pointer hover:bg-muted/10 transition-colors group"
+                                                    onClick={() => setViewMode("chat")}
+                                                >
+                                                    <div className="flex items-center justify-between mb-2">
+                                                        <span className="font-medium text-sm">
+                                                            {replies[replies.length - 1].senderId === selectedTicket.userId ? selectedTicket.user?.name || "User" : "Support Team"}
+                                                        </span>
+                                                        <span className="text-xs text-muted-foreground group-hover:text-primary transition-colors">
+                                                            Click to view full chat &rarr;
+                                                        </span>
+                                                    </div>
+                                                    <p className="text-sm text-muted-foreground line-clamp-2">
+                                                        {replies[replies.length - 1].message}
+                                                    </p>
+                                                </div>
+                                            ) : (
+                                                <div className="text-sm text-muted-foreground italic flex items-center gap-2">
+                                                    <MessageSquare className="h-4 w-4" /> No replies yet. Start the conversation.
+                                                </div>
+                                            )}
+                                        </div>
+                                    </div>
+                                </ScrollArea>
+                            ) : (
+                                <div className="flex-1 flex flex-col bg-background min-w-0">
+                                    <div className="p-3 border-b bg-muted/5 text-sm font-medium flex justify-between items-center sticky top-0 z-10 glass">
+                                        <div className="flex items-center gap-2">
+                                            <MessageSquare className="h-4 w-4" /> Secure Communication Channel
+                                        </div>
+                                    </div>
+                                    <ScrollArea className="flex-1 p-4 bg-muted/5">
+                                        <div className="space-y-6">
+                                            {loadingReplies ? (
+                                                <div className="flex justify-center p-8">
+                                                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+                                                </div>
+                                            ) : replies.length === 0 ? (
+                                                <div className="text-center text-muted-foreground py-10 space-y-2">
+                                                    <MessageSquare className="h-10 w-10 mx-auto opacity-20" />
+                                                    <p>No messages yet. Start the secure conversation.</p>
+                                                </div>
+                                            ) : (
+                                                replies.map((reply) => (
+                                                    <div key={reply.id} className={cn("flex w-full", reply.senderId === selectedTicket.userId ? "justify-start" : "justify-end")}>
                                                         <div className={cn(
                                                             "max-w-[75%] rounded-2xl p-3 shadow-sm text-sm relative px-4 py-3",
-                                                            isUser ? "bg-white border text-foreground rounded-tl-none" : "bg-primary text-primary-foreground rounded-tr-none"
+                                                            reply.senderId === selectedTicket.userId ? "bg-white border text-foreground rounded-tl-none" : "bg-primary text-primary-foreground rounded-tr-none"
                                                         )}>
                                                             <p>{reply.message}</p>
-                                                            <div className={cn("text-[10px] mt-1 flex gap-1", isUser ? "text-muted-foreground" : "text-primary-foreground/70 justify-end")}>
-                                                                <span>{isUser ? selectedTicket?.user?.name || "User" : "Support Team"}</span>
+                                                            <div className={cn("text-[10px] mt-1 flex gap-1", reply.senderId === selectedTicket.userId ? "text-muted-foreground" : "text-primary-foreground/70 justify-end")}>
+                                                                <span>{reply.senderId === selectedTicket.userId ? selectedTicket?.user?.name || "User" : "Support Team"}</span>
                                                                 <span>•</span>
                                                                 {formatDistanceToNow(new Date(reply.createdAt))} ago
                                                             </div>
                                                         </div>
                                                     </div>
-                                                );
-                                            })
-                                        )}
+                                                ))
+                                            )}
+                                        </div>
+                                    </ScrollArea>
+                                    <div className="p-4 border-t bg-background mt-auto">
+                                        <div className="flex gap-2 relative">
+                                            <Textarea
+                                                placeholder="Type a secure reply..."
+                                                value={newMessage}
+                                                onChange={(e) => setNewMessage(e.target.value)}
+                                                className="min-h-[50px] max-h-[150px] resize-none pr-12"
+                                                onKeyDown={(e) => {
+                                                    if (e.key === "Enter" && !e.shiftKey) {
+                                                        e.preventDefault();
+                                                        handleSendReply();
+                                                    }
+                                                }}
+                                            />
+                                            <Button
+                                                size="sm"
+                                                onClick={handleSendReply}
+                                                disabled={sending || !newMessage.trim()}
+                                                className="absolute bottom-2 right-2 h-8 w-8 p-0 rounded-full"
+                                            >
+                                                {sending ? <div className="animate-spin h-3 w-3 border-2 border-current border-t-transparent rounded-full" /> : <Send className="h-4 w-4" />}
+                                            </Button>
+                                        </div>
+                                        <p className="text-[10px] text-muted-foreground mt-2 text-center">
+                                            Messages are end-to-end encrypted and secure.
+                                        </p>
                                     </div>
-                                </ScrollArea>
-                                <div className="p-4 border-t bg-background mt-auto">
-                                    <div className="flex gap-2 relative">
-                                        <Textarea
-                                            placeholder="Type a secure reply..."
-                                            value={newMessage}
-                                            onChange={(e) => setNewMessage(e.target.value)}
-                                            className="min-h-[50px] max-h-[150px] resize-none pr-12"
-                                            onKeyDown={(e) => {
-                                                if (e.key === "Enter" && !e.shiftKey) {
-                                                    e.preventDefault();
-                                                    handleSendReply();
-                                                }
-                                            }}
-                                        />
-                                        <Button
-                                            size="sm"
-                                            onClick={handleSendReply}
-                                            disabled={sending || !newMessage.trim()}
-                                            className="absolute bottom-2 right-2 h-8 w-8 p-0 rounded-full"
-                                        >
-                                            {sending ? <div className="animate-spin h-3 w-3 border-2 border-current border-t-transparent rounded-full" /> : <Send className="h-4 w-4" />}
-                                        </Button>
-                                    </div>
-                                    <p className="text-[10px] text-muted-foreground mt-2 text-center">
-                                        Messages are end-to-end encrypted and secure.
-                                    </p>
                                 </div>
-                            </div>
+                            )}
                         </div>
                     )}
                 </DialogContent>
