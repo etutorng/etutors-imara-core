@@ -18,14 +18,14 @@ type Course = {
     modules: any[];
 };
 
-export default async function PublicCoursePage({ params }: { params: { courseId: string } }) {
-    const courseId = params.courseId;
-    
+export default async function PublicCoursePage({ params }: { params: Promise<{ courseId: string }> }) {
+    const { courseId } = await params;
+
     const course = await getCourse(courseId);
     if (!course) {
         notFound();
     }
-    
+
     const alternateCourse = await getAlternateCourse(course.groupId, course.language);
     const alternateCourseId = alternateCourse?.id;
 

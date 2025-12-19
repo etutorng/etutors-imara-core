@@ -33,10 +33,6 @@ export function CoursePlayer({ course, alternateCourseId, isPreview = false }: C
     const activeModule = course.modules[0]; // Default to first module for now
 
     const handleSwitchAudio = () => {
-        if (isPreview) {
-            toast.error(t("lms.signupToAccess", "Sign up to switch audio languages"));
-            return;
-        }
         if (alternateCourseId) {
             router.push(`/lms/${alternateCourseId}`);
         } else {
