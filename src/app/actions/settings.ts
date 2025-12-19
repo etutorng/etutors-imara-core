@@ -42,15 +42,29 @@ export async function uploadLogo(formData: FormData) {
 }
 
 export async function getSystemSettings() {
-    const settings = await db.query.systemSettings.findFirst();
+    try {
+        const settings = await db.query.systemSettings.findFirst();
 
-    if (!settings) {
-        // Create default settings if none exist
-        const [newSettings] = await db.insert(systemSettings).values({}).returning();
-        return newSettings;
+        if (!settings) {
+            // Create default settings if none exist
+            const [newSettings] = await db.insert(systemSettings).values({}).returning();
+            return newSettings;
+        }
+
+        return settings;
+    } catch (error) {
+        // Return default settings if database is unavailable (e.g., during build)
+        console.warn("Database unavailable, using default settings:", error);
+        return {
+            id: "default",
+            siteName: "Imara",
+            supportEmail: "support@imara.com",
+            maintenanceMode: false,
+            allowRegistration: true,
+            siteLogoUrl: "/imara-logo.png",
+            updatedAt: new Date(),
+        };
     }
-
-    return settings;
 }
 
 export async function updateSystemSettings(data: {
