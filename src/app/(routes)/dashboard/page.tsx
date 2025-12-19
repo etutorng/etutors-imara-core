@@ -41,6 +41,14 @@ export default function DashboardPage() {
     useEffect(() => {
         if (!isPending && !session) {
             router.push("/signin");
+        } else if (session?.user) {
+            // Check for privileged roles and redirect to Admin Dashboard
+            const role = (session.user as any).role;
+            const privilegedRoles = ["SUPER_ADMIN", "CONTENT_EDITOR", "LEGAL_PARTNER", "COUNSELLOR"];
+
+            if (role && privilegedRoles.includes(role)) {
+                router.push("/admin/dashboard");
+            }
         }
     }, [session, isPending, router]);
 

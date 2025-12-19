@@ -73,11 +73,7 @@ export async function getAdminDashboardStats() {
         stats.pendingApprovals = 0;
     }
     else if (role === "LEGAL_PARTNER") {
-        // My Active Cases
-        // Ideally tickets assigned to this user, but we don't have assignment logic fully yet or it's just by category?
-        // Let's assume all active tickets for now or filter if we had an 'assignedTo' field.
-        // The schema has `userId` (creator). It doesn't seem to have `assignedTo`.
-        // So we'll just show All Active Cases for now.
+        // ... existing LEGAL_PARTNER logic ...
         const casesCount = await db.select({ count: count() })
             .from(tickets)
             .where(not(eq(tickets.status, "resolved")));
@@ -92,6 +88,29 @@ export async function getAdminDashboardStats() {
             .from(tickets)
             .where(eq(tickets.status, "resolved"));
         stats.resolvedCases = resolvedCount[0].count;
+    }
+    else if (role === "COUNSELLOR") {
+        // My Active Sessions (Active + Pending)
+        const activeSessions = await db.select({ count: count() })
+            .from(counsellingSessions)
+            .where(and(
+                eq(counsellingSessions.counsellorId, session.user.id),
+                eq(counsellingSessions.status, "ACTIVE")
+            ));
+        stats.myActiveCases = activeSessions[0].count; // Reusing field for Active Sessions
+
+        const pendingRequests = await db.select({ count: count() })
+            .from(counsellingSessions)
+            .where(and(
+                eq(counsellingSessions.counsellorId, session.user.id),
+                eq(counsellingSessions.status, "PENDING")
+            ));
+        stats.pendingRequests = pendingRequests[0].count;
+
+        const totalSessions = await db.select({ count: count() })
+            .from(counsellingSessions)
+            .where(eq(counsellingSessions.counsellorId, session.user.id));
+        stats.resolvedCases = totalSessions[0].count; // Reusing field for Total Sessions
     }
 
     return stats;
