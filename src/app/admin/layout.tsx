@@ -24,6 +24,12 @@ export default async function AdminLayout({
         image: session.user.image,
     };
 
+    // RBAC: Block "USER" role from any admin access
+    if (role === "USER") {
+        redirect("/unauthorized"); // Or back to dashboard
+    }
+
+
     return (
         <div className="flex h-screen w-full overflow-hidden bg-background">
             {/* Desktop Sidebar - Fixed */}

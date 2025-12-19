@@ -2,9 +2,10 @@ import type { Metadata } from "next";
 import localFont from "next/font/local";
 import "./globals.css";
 import Providers from "@/providers";
-import { Navbar } from "@/components/navigation/navbar";
-import { BottomNav } from "@/components/mobile/bottom-nav";
-import { Footer } from "@/components/footer";
+import { getSystemSettings } from "@/app/actions/settings";
+import { auth } from "@/lib/auth/server";
+import { headers } from "next/headers";
+import { redirect } from "next/navigation";
 
 const geistSans = localFont({
   src: "./fonts/GeistVF.woff",
@@ -33,21 +34,42 @@ export const metadata: Metadata = {
   manifest: "/favicons/site.webmanifest",
 };
 
-import { headers } from "next/headers";
 
-import { getSystemSettings } from "@/app/actions/settings";
 
 export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const headersList = await headers();
-  const pathname = headersList.get("x-pathname") || "";
-  const isAdminRoute = pathname.startsWith("/admin");
+  // Enforce Maintenance Mode
   const settings = await getSystemSettings();
+  if (settings.maintenanceMode) {
+    const headersList = await headers();
+    const pathname = headersList.get("x-pathname") || "";
+    const session = await auth.api.getSession({ headers: headersList });
 
-  // Enforce Maintenance Mode is now handled in middleware (src/proxy.ts)
+    // Allowed paths: public static, auth api, etc already handled by next config or static serving
+    // We need to check if user is allowed.
+    // Admin routes are protected by admin layout, but maintenance mode should block public access.
+
+    // Bypass for:
+    // 1. /maintenance page (to prevent redirect loop)
+    // 2. Auth API routes (handled by Next router/api folder, but layout wraps children) - Wait, layout wraps everything.
+    // Note: API routes in Next.js App Router (route handlers) do NOT use this RootLayout. So API is safe.
+    // 3. /signin page (to allow login)
+    // 4. /admin routes IF user is admin (checked below)
+
+    const isMaintenancePage = pathname === "/maintenance";
+    const isAuthPage = pathname.startsWith("/signin") || pathname.startsWith("/signup");
+    const isAdminData = pathname.startsWith("/admin");
+
+    if (!isMaintenancePage && !isAuthPage && !isAdminData) {
+      // If logged in as Admin, allow access? Logic in middleware was:
+      // If maintenance is on, block unless special route.
+      // Let's keep it simple: strict maintenance.
+      redirect("/maintenance");
+    }
+  }
 
   return (
     <html lang="en">
@@ -55,12 +77,7 @@ export default async function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
         <Providers>
-          {!isAdminRoute && <Navbar logoUrl={settings.siteLogoUrl} />}
-          <main className={isAdminRoute ? "" : "min-h-screen pb-16 md:pb-0"}>
-            {children}
-          </main>
-          {!isAdminRoute && <BottomNav />}
-          {!isAdminRoute && <Footer />}
+          {children}
         </Providers>
       </body>
     </html>
