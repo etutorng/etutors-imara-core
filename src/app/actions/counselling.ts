@@ -267,6 +267,55 @@ export async function getSessionMessages(sessionId: string) {
         });
         return { messages };
     } catch (error) {
-        return { error: "Failed to fetch messages" };
+    }
+}
+
+
+export async function getCounsellors() {
+    try {
+        const counsellors = await db.query.user.findMany({
+            where: and(
+                eq(user.role, "COUNSELLOR"),
+                eq(user.isActive, true)
+            ),
+            columns: {
+                id: true,
+                name: true,
+                image: true,
+                bio: true,
+                specialization: true,
+                experience: true
+            }
+        });
+
+        return counsellors;
+    } catch (error) {
+        console.error("Failed to get counsellors:", error);
+        return [];
+    }
+}
+
+export async function getCounsellorById(counsellorId: string) {
+    try {
+        const counsellor = await db.query.user.findFirst({
+            where: and(
+                eq(user.id, counsellorId),
+                eq(user.role, "COUNSELLOR")
+            ),
+            columns: {
+                id: true,
+                name: true,
+                image: true,
+                bio: true,
+                specialization: true,
+                experience: true,
+                featuredVideo: true
+            }
+        });
+
+        return counsellor;
+    } catch (error) {
+        console.error("Failed to get counsellor:", error);
+        return null;
     }
 }

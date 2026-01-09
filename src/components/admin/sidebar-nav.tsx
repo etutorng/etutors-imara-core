@@ -38,6 +38,13 @@ export function SidebarNav({ className, role, onLinkClick, ...props }: SidebarNa
             roles: ["SUPER_ADMIN"],
         },
         {
+            href: "/admin/counsellors",
+            label: "Counsellors",
+            icon: Users, // Using same icon or maybe UserCog if available, sticking to Users for now 
+            active: pathname === "/admin/counsellors",
+            roles: ["SUPER_ADMIN"],
+        },
+        {
             href: "/admin/content",
             label: "Content CMS",
             icon: FileText,

@@ -2,6 +2,7 @@
 
 import { db } from "@/db";
 import { systemSettings } from "@/db/schema/settings";
+import { user } from "@/db/schema/auth/user";
 import { auth } from "@/lib/auth/server";
 import { eq } from "drizzle-orm";
 import { headers } from "next/headers";
@@ -30,7 +31,7 @@ export async function uploadLogo(formData: FormData) {
     const uniqueSuffix = Date.now() + "-" + Math.round(Math.random() * 1e9);
     const filename = "logo-" + uniqueSuffix + "." + file.name.split(".").pop();
     const uploadDir = join(process.cwd(), "public", "uploads");
-    
+
     try {
         await mkdir(uploadDir, { recursive: true });
         await writeFile(join(uploadDir, filename), buffer);
@@ -103,5 +104,39 @@ export async function updateSystemSettings(data: {
     } catch (error) {
         console.error("Failed to update settings:", error);
         return { error: "Failed to update settings" };
+    }
+}
+
+export async function updateProfile(data: {
+    bio: string;
+    specialization: string;
+    experience: string;
+    featuredVideo?: string;
+}) {
+    const session = await auth.api.getSession({
+        headers: await headers(),
+    });
+
+    if (!session || !session.user) {
+        return { error: " Unauthorized" };
+    }
+
+    try {
+        await db.update(user)
+            .set({
+                bio: data.bio,
+                specialization: data.specialization,
+                experience: data.experience,
+                featuredVideo: data.featuredVideo,
+                updatedAt: new Date(),
+            })
+            .where(eq(user.id, session.user.id));
+
+        revalidatePath("/admin/settings");
+        revalidatePath("/admin/profile");
+        return { success: true };
+    } catch (error) {
+        console.error("Failed to update profile:", error);
+        return { error: "Failed to update profile" };
     }
 }

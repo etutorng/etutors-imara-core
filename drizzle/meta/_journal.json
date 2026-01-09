@@ -64,6 +64,20 @@
       "when": 1765974415834,
       "tag": "0008_lively_green_goblin",
       "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1767883893578,
+      "tag": "0009_tan_the_hunter",
+      "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1767886434758,
+      "tag": "0010_typical_the_stranger",
+      "breakpoints": true
     }
   ]
 }
