@@ -90,20 +90,18 @@ export function AdminCounsellorProfile({ counsellor }: AdminCounsellorProfilePro
                                 const toastId = toast.loading("Uploading image...");
 
                                 try {
-                                    const res = await fetch("/api/upload", {
-                                        method: "POST",
-                                        body: uploadFormData,
-                                    });
+                                    // Dynamic import to avoid potential client/server boundary issues if any
+                                    const { uploadFile } = await import("@/app/actions/upload");
+                                    const res = await uploadFile(uploadFormData, "counsellors");
 
-                                    if (!res.ok) throw new Error("Upload failed");
+                                    if (res.error || !res.url) throw new Error(res.error || "Upload failed");
 
-                                    const data = await res.json();
-                                    setFormData(prev => ({ ...prev, image: data.url }));
+                                    setFormData(prev => ({ ...prev, image: res.url! }));
 
                                     // Auto-save the image change
                                     await adminUpdateCounsellorProfile(counsellor.id, {
                                         ...formData,
-                                        image: data.url
+                                        image: res.url!
                                     });
 
                                     toast.success("Image updated successfully", { id: toastId });
@@ -251,15 +249,12 @@ export function AdminCounsellorProfile({ counsellor }: AdminCounsellorProfilePro
                                                     const toastId = toast.loading("Uploading video...");
 
                                                     try {
-                                                        const res = await fetch("/api/upload", {
-                                                            method: "POST",
-                                                            body: uploadFormData,
-                                                        });
+                                                        const { uploadFile } = await import("@/app/actions/upload");
+                                                        const res = await uploadFile(uploadFormData, "videos");
 
-                                                        if (!res.ok) throw new Error("Upload failed");
+                                                        if (res.error || !res.url) throw new Error(res.error || "Upload failed");
 
-                                                        const data = await res.json();
-                                                        setFormData({ ...formData, featuredVideo: data.url });
+                                                        setFormData({ ...formData, featuredVideo: res.url });
                                                         toast.success("Video uploaded successfully", { id: toastId });
                                                     } catch (error) {
                                                         console.error(error);
