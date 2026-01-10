@@ -31,6 +31,7 @@ export const auth = betterAuth({
         type: "string",
         required: false,
         input: false,
+        defaultValue: "USER", // Must match PostgreSQL enum case
       },
     },
   },

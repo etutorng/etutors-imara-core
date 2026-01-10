@@ -1,11 +1,13 @@
 import { getCounsellorById, requestCounselling } from "@/app/actions/counselling";
+import { getCounsellorResources } from "@/app/actions/resources";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
-import { BadgeCheck, Calendar, Clock, GraduationCap, MapPin, MessageSquare, ArrowLeft } from "lucide-react";
+import { BadgeCheck, Calendar, Clock, GraduationCap, MapPin, MessageSquare, ArrowLeft, PlayCircle } from "lucide-react";
 import { notFound, redirect } from "next/navigation";
 import { GradientCard } from "@/components/ui/gradient-card";
 import { AuthActionButton } from "@/components/auth-action-button";
 import Link from "next/link";
+import { VideoGrid } from "@/components/counsellor/video-grid";
 
 interface PageProps {
     params: Promise<{
@@ -16,6 +18,7 @@ interface PageProps {
 export default async function CounsellorBioPage({ params }: PageProps) {
     const { counsellorId } = await params;
     const counsellor = await getCounsellorById(counsellorId);
+    const resources = await getCounsellorResources(counsellorId);
 
     if (!counsellor) {
         notFound();
@@ -91,6 +94,7 @@ export default async function CounsellorBioPage({ params }: PageProps) {
 
                     {(counsellor as any).featuredVideo && (
                         <section>
+                            <h3 className="text-lg font-semibold mb-3">Featured Introduction</h3>
                             <div className="aspect-video w-full rounded-xl overflow-hidden bg-muted shadow-sm">
                                 {(counsellor as any).featuredVideo.includes("youtube") || (counsellor as any).featuredVideo.includes("youtu.be") ? (
                                     <iframe
@@ -109,6 +113,14 @@ export default async function CounsellorBioPage({ params }: PageProps) {
                                     </video>
                                 )}
                             </div>
+                        </section>
+                    )}
+
+                    {/* Video Resources Section */}
+                    {resources.length > 0 && (
+                        <section>
+                            <h2 className="text-2xl font-bold mb-4">Educational Content</h2>
+                            <VideoGrid resources={resources as any} />
                         </section>
                     )}
 

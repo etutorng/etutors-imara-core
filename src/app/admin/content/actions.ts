@@ -18,6 +18,9 @@ export async function createResource(data: {
     groupId?: string;
     isMaster?: boolean;
     thumbnail?: string;
+    authorId?: string;
+    videoUrl?: string;
+    duration?: string;
 }) {
     const session = await auth.api.getSession({
         headers: await headers(),
@@ -41,6 +44,9 @@ export async function createResource(data: {
             groupId: groupId,
             isMaster: isMaster,
             thumbnail: data.thumbnail,
+            authorId: data.authorId,
+            videoUrl: data.videoUrl,
+            duration: data.duration,
         });
 
         revalidatePath("/admin/content");
@@ -60,6 +66,9 @@ export async function upsertResourceTranslation(data: {
     category: string;
     format: string;
     thumbnail?: string;
+    authorId?: string;
+    videoUrl?: string;
+    duration?: string;
 }) {
     const session = await auth.api.getSession({
         headers: await headers(),
@@ -85,6 +94,9 @@ export async function upsertResourceTranslation(data: {
                     description: data.description,
                     url: data.url,
                     thumbnail: data.thumbnail,
+                    videoUrl: data.videoUrl,
+                    duration: data.duration,
+                    authorId: data.authorId
                 })
                 .where(eq(resources.id, existing.id));
         } else {
@@ -98,6 +110,9 @@ export async function upsertResourceTranslation(data: {
                 format: data.format,
                 isMaster: false, // Translations are never master unless explicitly set (which we handle in create)
                 thumbnail: data.thumbnail,
+                videoUrl: data.videoUrl,
+                duration: data.duration,
+                authorId: data.authorId
             });
         }
 
