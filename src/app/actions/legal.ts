@@ -46,6 +46,46 @@ export async function submitTicket(data: z.infer<typeof createTicketSchema>) {
         return ticket.id;
     });
 
+    // Send Email Notification to Legal Staff
+    try {
+        const { sendEmail } = await import("@/lib/email");
+
+        // Notify Legal Admin / Staff
+        // Using a dedicated env var or fallback to general admin
+        const legalEmail = process.env.LEGAL_EMAIL_NOTIFY || process.env.ADMIN_EMAIL_NOTIFY || "legal@imara.etutors.ng";
+
+        const subject = `New Legal Aid Request: ${data.category}`;
+        const messageText = `
+New Legal Aid Request Received.
+
+User: ${session?.user?.name || "Anonymous"}
+Category: ${data.category}
+Description:
+${data.description}
+
+Please log in to the admin panel to review.
+        `;
+
+        await sendEmail({
+            to: legalEmail,
+            subject: subject,
+            text: messageText,
+            html: `
+<h2>New Legal Aid Request</h2>
+<p><strong>User:</strong> ${session?.user?.name || "Anonymous"} (${session?.user?.email || "No Email"})</p>
+<p><strong>Category:</strong> ${data.category}</p>
+<h3>Description</h3>
+<p style="white-space: pre-wrap;">${data.description}</p>
+<br/>
+<p>Please log in to the admin panel to review and take action.</p>
+            `
+        });
+
+    } catch (emailError) {
+        console.error("Failed to send legal notification email. Ticket ID:", ticketId, "Error:", emailError);
+        // We log clearly but do not revert the ticket creation, as the user's request was successfully saved.
+    }
+
     return { success: true, ticketId };
 }
 

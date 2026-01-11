@@ -19,28 +19,16 @@ export async function submitApplication(formData: FormData) {
         phone: formData.get("phone") as string,
         state: formData.get("state") as string,
         lga: formData.get("lga") as string,
+        address: formData.get("address") as string,
         qualification: formData.get("qualification") as string,
         skill: formData.get("skill") as string,
         essay: formData.get("essay") as string,
     };
 
-    const file = formData.get("certificate") as File;
-    let certificateUrl = "";
+    // Note: Certificate upload removed as per request.
+    // Address field added.
 
-    if (file && file.size > 0) {
-        try {
-            // Upload file using storage provider
-            const filename = `scholarship/${Date.now()}-${file.name.replace(/[^a-zA-Z0-9.-]/g, "")}`;
-            certificateUrl = await storage.uploadFile(file, filename);
-        } catch (error) {
-            console.error("File upload failed:", error);
-            return { error: "Failed to upload certificate" };
-        }
-    } else {
-        return { error: "O-Level Certificate is required" };
-    }
-
-    const validation = createApplicationSchema.safeParse({ ...rawData, certificateUrl });
+    const validation = createApplicationSchema.safeParse({ ...rawData });
 
     if (!validation.success) {
         return { error: validation.error.errors[0].message };
@@ -54,6 +42,46 @@ export async function submitApplication(formData: FormData) {
     };
 
     applications.unshift(newApplication);
+
+    // Send email notification to admin
+    try {
+        const { sendEmail } = await import("@/lib/email");
+        const adminEmail = process.env.ADMIN_EMAIL_NOTIFY || "admin@imara.etutors.ng"; // Fallback or env
+
+        await sendEmail({
+            to: adminEmail,
+            subject: `New Scholarship Application: ${newApplication.fullName}`,
+            text: `
+New Application Received
+
+Name: ${newApplication.fullName}
+Email: ${newApplication.email || "N/A"}
+Phone: ${newApplication.phone}
+State/LGA: ${newApplication.state}, ${newApplication.lga}
+Qualification: ${newApplication.qualification}
+Skill Interest: ${newApplication.skill}
+
+Essay:
+${newApplication.essay}
+            `,
+            html: `
+<h2>New Scholarship Application Received</h2>
+<p><strong>Name:</strong> ${newApplication.fullName}</p>
+<p><strong>Email:</strong> ${newApplication.email || "N/A"}</p>
+<p><strong>Phone:</strong> ${newApplication.phone}</p>
+<p><strong>Location:</strong> ${newApplication.state}, ${newApplication.lga}</p>
+<p><strong>Address:</strong> ${newApplication.address}</p>
+<p><strong>Qualification:</strong> ${newApplication.qualification}</p>
+<p><strong>Skill Interest:</strong> ${newApplication.skill}</p>
+<hr/>
+<h3>Essay</h3>
+<p style="white-space: pre-wrap;">${newApplication.essay}</p>
+            `
+        });
+    } catch (emailError) {
+        console.error("Failed to send admin notification:", emailError);
+        // We don't block success if email fails, just log it
+    }
 
     return { success: true, applicationId: newApplication.id };
 }

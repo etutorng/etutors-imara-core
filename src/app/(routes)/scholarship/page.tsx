@@ -24,13 +24,7 @@ export default function ScholarshipPage() {
 
         const formData = new FormData(e.currentTarget);
 
-        // Ensure file is selected
-        const file = formData.get("certificate") as File;
-        if (!file || file.size === 0) {
-            toast.error(t("scholarship.olevel.required"));
-            setSubmitting(false);
-            return;
-        }
+
 
         try {
             const result = await submitApplication(formData);
@@ -132,28 +126,18 @@ export default function ScholarshipPage() {
 
                             <div className="grid md:grid-cols-2 gap-6">
                                 <div className="space-y-2">
-                                    <Label htmlFor="state">{t("scholarship.form.state")}</Label>
+                                    <Label htmlFor="state">State of Residence</Label>
                                     <Input id="state" name="state" required placeholder="e.g. Kano" />
                                 </div>
                                 <div className="space-y-2">
-                                    <Label htmlFor="lga">{t("scholarship.form.lga")}</Label>
+                                    <Label htmlFor="lga">LGA of Residence</Label>
                                     <Input id="lga" name="lga" required placeholder="e.g. Nassarawa" />
                                 </div>
                             </div>
 
                             <div className="space-y-2">
-                                <Label htmlFor="certificate">{t("scholarship.form.certificate")}</Label>
-                                <div className="flex items-center gap-4">
-                                    <Input
-                                        id="certificate"
-                                        name="certificate"
-                                        type="file"
-                                        accept=".jpg,.jpeg,.png,.pdf"
-                                        required
-                                        className="cursor-pointer file:cursor-pointer file:text-primary file:font-medium"
-                                    />
-                                </div>
-                                <p className="text-xs text-muted-foreground">Accepted formats: JPG, PNG, PDF. Max size: 5MB.</p>
+                                <Label htmlFor="address">Full Address</Label>
+                                <Input id="address" name="address" required placeholder="e.g. No 123, Street Name, Area" />
                             </div>
 
                             <div className="space-y-2">

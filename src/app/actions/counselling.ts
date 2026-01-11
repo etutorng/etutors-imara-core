@@ -6,7 +6,7 @@ import {
     counsellingMessages,
     counsellingStatusEnum
 } from "@/db/schema/counselling";
-import { user } from "@/db/schema/auth/user";
+
 import { auth } from "@/lib/auth/server";
 import { eq, and, or, desc, asc } from "drizzle-orm";
 import { headers } from "next/headers";
@@ -65,6 +65,63 @@ export async function requestCounselling(counsellorId?: string) {
                 counsellorId: counsellorId || undefined, // Assign directly if targeted
             })
             .returning();
+
+        // Send Email Notification
+        try {
+            const { sendEmail } = await import("@/lib/email");
+
+            // Determine recipient: Specific counsellor or fallback to Admin/Head
+            let recipientEmail = process.env.ADMIN_EMAIL_NOTIFY || "admin@imara.etutors.ng";
+            let recipientName = "Admin";
+
+            // If a specific counsellor was requested, fetch their email
+            if (counsellorId) {
+                const counsellor = await db.query.user.findFirst({
+                    where: eq(user.id, counsellorId),
+                    columns: { email: true, name: true }
+                });
+                if (counsellor) {
+                    recipientEmail = counsellor.email;
+                    recipientName = counsellor.name;
+                }
+            }
+
+            // Create notification content
+            const subject = `New Counselling Request from ${session.user.name}`;
+            const messageText = `
+Hello ${recipientName},
+
+You have received a new counselling request.
+
+Applicant: ${session.user.name}
+Email: ${session.user.email}
+Date: ${new Date().toLocaleString()}
+
+Please log in to your dashboard to review and respond to this request.
+            `;
+
+            await sendEmail({
+                to: recipientEmail,
+                subject: subject,
+                text: messageText,
+                html: `
+<h2>New Counselling Request</h2>
+<p>Hello ${recipientName},</p>
+<p>You have received a new counselling request.</p>
+<ul>
+    <li><strong>Applicant:</strong> ${session.user.name}</li>
+    <li><strong>Email:</strong> ${session.user.email}</li>
+    <li><strong>Date:</strong> ${new Date().toLocaleString()}</li>
+</ul>
+<p>Please log in to your dashboard to review and respond.</p>
+<hr/>
+<p><a href="${process.env.NEXT_PUBLIC_APP_URL || 'https://imara.etutors.ng'}/dashboard">Go to Dashboard</a></p>
+                `
+            });
+
+        } catch (emailError) {
+            console.error("Failed to send counselling notification:", emailError);
+        }
 
         revalidatePath("/dashboard/counselling");
         return { success: true, session: newSession };

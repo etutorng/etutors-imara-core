@@ -7,10 +7,10 @@ export const createApplicationSchema = z.object({
     phone: z.string().min(10, "Valid phone number is required"),
     state: z.string().min(1, "State is required"),
     lga: z.string().min(1, "LGA is required"),
+    address: z.string().min(5, "Valid address is required"),
     qualification: z.string().min(1, "Qualification is required"),
     skill: z.string().min(1, "Skill is required"),
     essay: z.string().min(20, "Please tell us more about why you want this"),
-    certificateUrl: z.string().optional(),
 });
 
 export type Application = z.infer<typeof createApplicationSchema> & {
