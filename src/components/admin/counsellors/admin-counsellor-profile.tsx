@@ -13,6 +13,9 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
 import { Calendar, Mail, MapPin, Video, Save, Loader2, Upload } from "lucide-react";
 
+import { Switch } from "@/components/ui/switch";
+import { updateCounsellorStatus } from "@/app/actions/admin-counsellors";
+
 interface AdminCounsellorProfileProps {
     counsellor: {
         id: string;
@@ -41,6 +44,24 @@ export function AdminCounsellorProfile({ counsellor }: AdminCounsellorProfilePro
         featuredVideo: counsellor.featuredVideo || "",
         image: counsellor.image || ""
     });
+
+    const [isActive, setIsActive] = useState(counsellor.isActive);
+
+    const handleStatusToggle = async (checked: boolean) => {
+        setIsActive(checked);
+        try {
+            const res = await updateCounsellorStatus(counsellor.id, checked);
+            if (res.success) {
+                toast.success(checked ? "Counsellor activated" : "Counsellor suspended");
+            } else {
+                setIsActive(!checked); // Revert
+                toast.error("Failed to update status");
+            }
+        } catch (error) {
+            setIsActive(!checked); // Revert
+            toast.error("An error occurred");
+        }
+    };
 
     const handleSave = async () => {
         setSaving(true);
@@ -115,8 +136,8 @@ export function AdminCounsellorProfile({ counsellor }: AdminCounsellorProfilePro
                     <CardTitle>{counsellor.name}</CardTitle>
                     <CardDescription>{counsellor.email}</CardDescription>
                     <div className="flex items-center gap-2 mt-2">
-                        <Badge variant={counsellor.isActive ? "default" : "secondary"}>
-                            {counsellor.isActive ? "Active" : "Suspended"}
+                        <Badge variant={isActive ? "default" : "secondary"}>
+                            {isActive ? "Active" : "Suspended"}
                         </Badge>
                         <Badge variant="outline">Counsellor</Badge>
                     </div>
@@ -142,6 +163,21 @@ export function AdminCounsellorProfile({ counsellor }: AdminCounsellorProfilePro
                         </div>
                     </div>
                 </CardContent>
+                <CardFooter className="border-t pt-6">
+                    <div className="flex items-center justify-between w-full">
+                        <Label htmlFor="active-status" className="flex flex-col gap-1">
+                            <span>Profile Status</span>
+                            <span className="font-normal text-xs text-muted-foreground">
+                                Publicly visible when active
+                            </span>
+                        </Label>
+                        <Switch
+                            id="active-status"
+                            checked={isActive}
+                            onCheckedChange={handleStatusToggle}
+                        />
+                    </div>
+                </CardFooter>
             </Card>
 
             {/* Right Column: Editing Form */}

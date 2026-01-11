@@ -111,6 +111,8 @@ export async function updateCounsellorStatus(counsellorId: string, isActive: boo
             .where(eq(user.id, counsellorId));
 
         revalidatePath("/admin/counsellors");
+        revalidatePath("/counselling");
+        revalidatePath(`/counselling/${counsellorId}`);
         return { success: true };
     } catch (error) {
         return { error: "Failed to update status" };
@@ -140,6 +142,8 @@ export async function adminUpdateCounsellorProfile(counsellorId: string, data: {
 
         revalidatePath("/admin/counsellors");
         revalidatePath(`/admin/counsellors/${counsellorId}`);
+        revalidatePath("/counselling");
+        revalidatePath(`/counselling/${counsellorId}`);
         return { success: true };
     } catch (error) {
         return { error: "Failed to update profile" };
